@@ -1,12 +1,13 @@
 # Team Name
+TBD
 
 # Team Members
 
 Last Name       | First Name      | GitHub User Name
 --------------- | --------------- | --------------------
-TBD             | TBD             | TBD
-TBD             | TBD             | TBD
-TBD             | TBD             | TBD
+Caplinger       | Derek           | drc3141
+Mello           | Justin          | mello-j
+Youngberg       | Matt            | mattyoungberg
 
 # Test Results
 How many of the dumpfiles matched (using the check-dumpfiles.sh script)?
@@ -28,9 +29,9 @@ Brief reflection on your experience with running your code on AWS.
 
 Provide a reflection by each of the team member (in a separate subsection)
 
-## Reflection (Team member name: )
-## Reflection (Team member name: )
-## Reflection (Team member name: )
+## Reflection (Team member name: Derek Caplinger )
+## Reflection (Team member name: Justin Mello)
+## Reflection (Team member name: Matt Youngberg)
 
 # Additional Notes
 TBD
