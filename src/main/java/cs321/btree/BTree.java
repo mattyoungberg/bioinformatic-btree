@@ -44,7 +44,7 @@ public class BTree implements BTreeInterface
 				fileName.createNewFile();
 				RandomAccessFile dataFile = new RandomAccessFile(fileName, "rw");
 				file = dataFile.getChannel();
-				readMetaData();
+				writeMetaData();
 			} else { 
 				RandomAccessFile dataFile = new RandomAccessFile(fileName, "rw");
 				file = dataFile.getChannel();
@@ -60,7 +60,7 @@ public class BTree implements BTreeInterface
 
 	@Override
 	public long getSize() {
-		
+
 		return treeSize;
 	}
 
