@@ -61,25 +61,25 @@ public class BTree implements BTreeInterface
 	@Override
 	public long getSize() {
 		
-		return 0;
+		return treeSize;
 	}
 
 	@Override
 	public int getDegree() {
-		// TODO Auto-generated method stub
-		return 0;
+		
+		return degree;
 	}
 
 	@Override
 	public int getNumberOfNodes() {
-		// TODO Auto-generated method stub
-		return 0;
+		
+		return numNodes;
 	}
 
 	@Override
 	public int getHeight() {
-		// TODO Auto-generated method stub
-		return 0;
+		
+		return height;
 	}
 
 	@Override
@@ -114,13 +114,28 @@ public class BTree implements BTreeInterface
 		// TODO Auto-generated method stub
 		
 	}
+	
+	
 
 	@Override
 	public TreeObject search(long key) throws IOException {
-		// TODO Auto-generated method stub
-		
-				
-		return null;
+		Node x = root;
+		boolean isFound = false;
+		while (!isFound) {
+			int i =0;
+			while (i < x.numKeys && key > x.treeObjects[i].getValue()) {
+				i ++;
+			}
+			if ( i < x.numKeys && x.treeObjects[i].getValue() == key) {
+				isFound = true; 
+				return x.treeObjects[i];
+			} else if (x.isLeaf) {
+				return null;
+			} else {
+				x = diskRead(x.childPointers[i]);
+			}
+		}
+		return null; //should not reach this
 	}
 	
 	/**
