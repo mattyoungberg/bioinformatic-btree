@@ -3,7 +3,7 @@ package cs321.btree;
 public class TreeObject
 {
 
-	public TreeObject(long value, long frequency) {
+	public TreeObject(long value, int frequency) {
 		// TODO Auto-generated constructor stub
 	}
 
@@ -17,10 +17,9 @@ public class TreeObject
 		return 0;
 	}
 
-	public long getFrequency() {
+	public int getFrequency() {
 		// TODO Auto-generated method stub
 		return 0;
 	}
-
 	
 }
