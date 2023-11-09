@@ -8,6 +8,17 @@ import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 
+/**
+ * A BTree class that stores a series of TreeObjects using a standard BTree implementation provided by BTreeInterface.
+ * The BTree tracks information on the overall structure including the total number of nodes the degree used in the BTree and the total number of keys/ TreeObjects stored in the structure
+ * A BTree can be constructed from a file read from disk or used to create a new file for a Btree with an option to provide a specific degree for the newly created BTree. 
+ * 
+ * 
+ * @author Derek Caplinger
+ * @author Justin Mello
+ * @author Matt Youngberg
+ *
+ */
 public class BTree implements BTreeInterface
 {
 	private int METADATA_SIZE = Long.BYTES + (4 * Integer.BYTES);
@@ -136,21 +147,20 @@ public class BTree implements BTreeInterface
 	}
 	
 	private Node splitRoot() throws IOException {
-		Node newNode = new Node(false);//new root node will not be written to memory until finish is called and BTree file is closed
+		Node newNode = new Node(true);//new root node needs to be written to file 
+		numNodes++; // increment numNodes when creating a new node
 		Node tempNode = root;// store root temporarily 
-		newNode.childPointers[0] = nextDiskAddress;//set address for node we are splitting
-		tempNode.address = nextDiskAddress;// update address for new child node
-		diskWrite(tempNode);//write new child node to disk 
-		nextDiskAddress += nodeSize; // increment next disk address so the next address does not overwrite a previous node
+		newNode.childPointers[0] = tempNode.address;//set address for newNodes first childPointer to the previous root we are splitting
 		root = newNode;// change root node to new node
-		rootAddress= newNode.address;
-		splitChild(newNode, 0);
+		rootAddress= newNode.address;// update root address
+		splitChild(newNode, 0);//proceed to split the child node
 		return newNode;
 	}
 	
 	private void splitChild(Node parent, int childPointer ) throws IOException {
 		Node y = diskRead(parent.childPointers[childPointer]);
 		Node z = new Node(true);
+		numNodes++; //increment number of nodes when new node is created to write to disk 
 		z.isLeaf = y.isLeaf;
 		z.numKeys = degree - 1;
 		for (int j = 0; j < degree - 2; j++) {
@@ -186,6 +196,7 @@ public class BTree implements BTreeInterface
 			x.treeObjects[i+1] = obj;
 			x.numKeys ++;
 			diskWrite(x);
+			treeSize ++;///increment tree size another key was inserted
 		} else {
 			while (i >= 0 && obj.getValue()<x.treeObjects[i].getValue()){
 				i --; 
