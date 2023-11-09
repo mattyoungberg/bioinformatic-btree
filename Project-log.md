@@ -3,12 +3,16 @@
 
 `(studentA)`
 `(studentC)`
-`(studentB)`
+`Matt Youngberg`
 
 # Sprint 1 (October 26th, Wednesday 2021 - November 8th, Friday 2021)
-1. Closes #9 commit adbc94690fa5ecf2912a055f634a6e24b4da8fbe `(studentA)`
-2. Closes #7 commit 151669a9d40ec1ebd34dc3cb3649d564113cbcbf `(studentA)`
-3. Closes #3 commit 0b76cc6ba2487e2190a4072359c3d88bd104b226 `(studentB)`
+1. Closes #4 commit e50370874057a983849477c440a51a2a1b4f308c `Matt Youngberg`
+2. Closes #18 commit e50370874057a983849477c440a51a2a1b4f308c `Matt Youngberg`
+3. Closes #19 commit e50370874057a983849477c440a51a2a1b4f308c `Matt Youngberg`
+4. Closes #20 commit e50370874057a983849477c440a51a2a1b4f308c `Matt Youngberg`
+5. Closes #21 commit e50370874057a983849477c440a51a2a1b4f308c `Matt Youngberg`
+6. Closes #22 commit e50370874057a983849477c440a51a2a1b4f308c `Matt Youngberg`
+7. Closes #23 commit e50370874057a983849477c440a51a2a1b4f308c `Matt Youngberg`
 
 
 
