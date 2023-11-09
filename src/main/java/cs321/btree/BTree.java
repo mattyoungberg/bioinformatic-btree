@@ -33,15 +33,16 @@ public class BTree implements BTreeInterface
 	 * @param fileName file name to store BTree on Disk
 	 * @throws IOException
 	 */
-	public BTree(File fileName)throws IOException{
+	public BTree(String fileName)throws IOException{
+		File btreeFile = new File(fileName);
 		
 		Node r = new Node(false);//dummy root node 
 		nodeSize = r.getDiskSize();
 		buffer = ByteBuffer.allocateDirect(nodeSize);
 		
 		try {
-			if (!fileName.exists()) {
-				fileName.createNewFile();
+			if (!btreeFile.exists()) {
+				btreeFile.createNewFile();
 				RandomAccessFile dataFile = new RandomAccessFile(fileName, "rw");
 				file = dataFile.getChannel();
 				//initialize metadata
@@ -68,14 +69,15 @@ public class BTree implements BTreeInterface
 	 * @param fileName file name to store BTree on Disk
 	 * @throws IOException
 	 */
-	public BTree(File fileName, int degree)throws IOException{
+	public BTree(int degree, String fileName)throws IOException{
+		File btreeFile = new File(fileName);
 		
 		Node r = new Node(false);//dummy root node 
 		nodeSize = r.getDiskSize();
 		buffer = ByteBuffer.allocateDirect(nodeSize);
 		
 		try {
-				fileName.createNewFile();
+				btreeFile.createNewFile();
 				RandomAccessFile dataFile = new RandomAccessFile(fileName, "rw");
 				file = dataFile.getChannel();
 				this.degree = degree ;//a new file will is create with the specified degree
@@ -141,6 +143,7 @@ public class BTree implements BTreeInterface
 		diskWrite(tempNode);//write new child node to disk 
 		nextDiskAddress += nodeSize; // increment next disk address so the next address does not overwrite a previous node
 		root = newNode;// change root node to new node
+		rootAddress= newNode.address;
 		splitChild(newNode, 0);
 		return newNode;
 	}
