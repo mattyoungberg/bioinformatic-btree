@@ -2,21 +2,34 @@ package cs321.btree;
 
 import cs321.create.SequenceUtils;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Stack;
 
+/**
+ * A BTree class that stores a series of TreeObjects using a standard BTree implementation provided by BTreeInterface.
+ * The BTree tracks information on the overall structure including the total number of nodes the degree used in the BTree and the total number of keys/ TreeObjects stored in the structure
+ * A BTree can be constructed from a file read from disk or used to create a new file for a Btree with an option to provide a specific degree for the newly created BTree. 
+ * 
+ * 
+ * @author Derek Caplinger
+ * @author Justin Mello
+ * @author Matt Youngberg
+ *
+ */
 public class BTree implements BTreeInterface
 {
-
     /**
      * The size of the metadata for the {@link BTree} in bytes.
      */
-    private final int METADATA_SIZE = Integer.BYTES + Long.BYTES;  // t + root position
+    private final int METADATA_SIZE = Integer.BYTES + Long.BYTES + Integer.BYTES;  // t + root position + count
 
     /**
      * The {@link FileChannel} that the {@link BTree} is stored in.
@@ -32,16 +45,14 @@ public class BTree implements BTreeInterface
      * The {@link ByteBuffer} that is used to read and write {@link BTreeNode}s to the {@link BTree}.
      */
     private ByteBuffer nodeBuffer;
-
-    /**
-     * The root node of the {@link BTree}.
-     */
-    private BTreeNode root;
-
-    /**
-     * The length of the DNA subsequences that each {@link TreeObject} encodes in a `long`.
-     */
-    private int k;  // sequence length
+	
+	//Metadata for each BTree file
+	private long rootAddress;
+	private int treeSize;
+	private int degree;
+	// TODO getNumNodes
+	// TODO getHeight
+	private BTreeNode root;
 
     /**
      * An {@link Iterator} for a {@link BTree} that traverses the tree in order.
@@ -137,7 +148,7 @@ public class BTree implements BTreeInterface
          *
          * @param position  the position on disk of the node to push all the left nodes of onto the stack
          */
-        private void pushAllLeftNodes(long position){
+        private void pushAllLeftNodes(long position) {
             if (position == 0) {
                 return;
             }
@@ -154,44 +165,180 @@ public class BTree implements BTreeInterface
             pushAllLeftNodes(frame.node.childPositions[0]);
         }
     }
+    // END INNER CLASS
 
-    public BTree(String fileName) {
+	
+	/**
+	 * Construct a BTree on disk if it does not exist 
+	 * otherwise read metadata for a tree that does already exist
+	 *
+	 * @param fileName file name to store BTree on Disk
+	 * @throws IOException
+	 */
+	public BTree(String fileName) throws IOException {
+        // TODO merge with BTreeNode methods.
+		BTreeNode r = new BTreeNode(new TreeObject[]);//dummy root node
+		nodeSize = r.getDiskSize();
+		buffer = ByteBuffer.allocateDirect(nodeSize);
+		
+		try {
+			if (!btreeFile.exists()) {
+				btreeFile.createNewFile();
+				RandomAccessFile dataFile = new RandomAccessFile(fileName, "rw");
+				file = dataFile.getChannel();
+				//initialize metadata
+				degree = calcOptimalDegree();
+				treeSize = 0;
+				numNodes = 1;
+				height = 1;
+				writeMetaData();
+			} else { 
+				RandomAccessFile dataFile = new RandomAccessFile(fileName, "rw").getChannel();
+				file = dataFile.getChannel();
+				readMetaData();
+				root = diskRead(rootAddress);
+			}
+		} catch (FileNotFoundException e) {
+			System.err.println(e);
+		}
+	}
+	
+	/**
+	 * Construct a new BTree on disk with the requested degree
+	 *
+	 * @param degree integer value for the desired degree of BTree
+	 * @param fileName file name to store BTree on Disk
+	 * @throws IOException
+	 */
+	public BTree(int degree, String fileName)throws IOException{
+        // TODO merge with BTreeNode methods
+		File btreeFile = new File(fileName);
+		
+		Node r = new Node(false);//dummy root node 
+		nodeSize = r.getDiskSize();
+		buffer = ByteBuffer.allocateDirect(nodeSize);
+		
+		try {
+				btreeFile.createNewFile();
+				RandomAccessFile dataFile = new RandomAccessFile(fileName, "rw");
+				file = dataFile.getChannel();
+				this.degree = degree ;//a new file will is create with the specified degree
+				treeSize = 0;
+				numNodes = 1;
+				height = 1;
+				writeMetaData();
+							 
+		} catch (FileNotFoundException e) {
+			System.err.println(e);
+		}
+	}
+	
+	
 
-    }
+	@Override
+	public long getSize() {
+		return treeSize;
+	}
 
-    public BTree(int t, String fileName) {
+	@Override
+	public int getDegree() {
+		return degree;
+	}
 
-    }
+	@Override
+	public int getNumberOfNodes() {
+        return -1;  // TODO do math
+	}
 
-    @Override
-    public long getSize() {
-        return 0;
-    }
+	@Override
+	public int getHeight() {
+        return -1;  // TODO do math
+	}
 
-    @Override
-    public int getDegree() {
-        return 0;
-    }
+	@Override
+	public void delete(long key) {
+		// TODO
+	}
 
-    @Override
-    public int getNumberOfNodes() {
-        return 0;
-    }
-
-    @Override
-    public int getHeight() {
-        return 0;
-    }
-
-    @Override
-    public void delete(long key) {
-
-    }
-
-    @Override
-    public void insert(TreeObject obj) throws IOException {
-
-    }
+	@Override
+	public void insert(TreeObject obj) throws IOException {
+        // TODO merge w/ BTreeNode methods
+		if(root.keyCount == (2*degree-1)) {  // TODO make maxKeys on node public
+			BTreeNode s = splitRoot();
+			insertNonFull(s, obj);
+		} else {
+			insertNonFull(root,obj);
+		}
+		
+	}
+	
+	private BTreeNode splitRoot() throws IOException {
+        // TODO merge w/ BTreeNode methods
+		BTreeNode newNode = new BTreeNode(true);//new root node needs to be written to file
+        BTreeNode tempNode = root;// store root temporarily
+		newNode.childPositions[0] = tempNode.address;//set address for newNodes first childPointer to the previous root we are splitting
+		root = newNode;// change root node to new node
+		rootAddress= newNode.address;// update root address
+		splitChild(newNode, 0);//proceed to split the child node
+		return newNode;
+	}
+	
+	private void splitChild(BTreeNode parent, int childPointer ) throws IOException {
+        BTreeNode y = diskRead(parent.childPositions[childPointer]);
+        BTreeNode z = new BTreeNode(true);
+		z.leaf = y.leaf;
+		z.keyCount = degree - 1;
+		for (int j = 0; j < degree - 2; j++) {
+			z.keys[j] = y.keys[j + degree];
+		}
+		if (!y.leaf) {
+			for (int j = 0; j < degree - 1;j++) {
+				z.childPositions[j] = z.childPositions[j + degree];
+			}
+		}
+		y.keyCount = degree - 1;
+		for (int j = parent.keyCount; j > degree + 1; j--) {
+			parent.childPositions[j+1] = parent.childPositions[j];
+		}
+		parent.childPositions[childPointer + 1] = z.address;  // TODO
+		for (int j = parent.keyCount - 1; j > childPointer; j-- ) {
+			parent.keys[j+1]= parent.keys[j];
+		}
+		parent.keys[childPointer] = y.keys[degree - 1];
+		parent.keyCount++;
+		diskWrite(y);  // TODO
+		diskWrite(z);  // TODO
+		diskWrite(parent);  // TODO, also potentially skip if root.
+	}
+	
+	private void insertNonFull(BTreeNode x, TreeObject obj) throws IOException {
+		int i = x.keyCount - 1;
+		if (x.leaf) {
+			while (i >= 0 && obj.getSubsequence() < x.keys[i].getSubsequence()){
+				x.keys[i+1] = x.keys[i];
+				i--;
+			}
+			x.keys[i+1] = obj;
+			x.keyCount++;
+			diskWrite(x);  // TODO
+			treeSize++;  //increment tree size another key was inserted
+		} else {
+			while (i >= 0 && obj.getSubsequence() < x.keys[i].getSubsequence()){
+				i--;
+			}
+			i++; 
+			BTreeNode y = diskRead(x.childPositions[i]);
+			if (y.keyCount == (2*degree -1)) {  // TODO merge w/ BTreeNode
+				splitChild(x , i);
+				if (obj.getSubsequence() > x.keys[i].getSubsequence()) {
+					i ++; 
+					y = diskRead(x.childPositions[i]);
+				}
+			}
+			insertNonFull(y, obj);
+		}
+		
+	}
 
     /**
      * Dumps the contents of the {@link BTree} to the given {@link PrintWriter}.
@@ -216,19 +363,86 @@ public class BTree implements BTreeInterface
             out.println(subSeqString + " " + obj.getCount());
         }
     }
+	
+	
 
-    @Override
-    public TreeObject search(long key) throws IOException {
-        return null;
-    }
-
+	@Override
+	public TreeObject search(long key) throws IOException {
+		BTreeNode x = root;
+		boolean isFound = false;
+		while (!isFound) {
+			int i =0;
+			while (i < x.keyCount && key > x.keys[i].getSubsequence()) {
+				i ++;
+			}
+			if ( i < x.keyCount && x.keys[i].getSubsequence() == key) {
+				isFound = true; 
+				return x.keys[i];
+			} else if (x.leaf) {
+				return null;
+			} else {
+				x = diskRead(x.childPositions[i]);
+			}
+		}
+		return null; //should not reach this
+	}
+	
+	private int calcOptimalDegree() {
+		return Math.floorDiv((4095 -Integer.BYTES + TreeObject.getDiskSize()), (2*(TreeObject.getDiskSize()+Long.BYTES)));  // TODO revisit w/ revised metadata structure
+	}
+	
+	/**
+	 * Calculate the max number of keys for a node given the desired degree
+	 * 
+	 * @return return the max number of keys a node can store
+	 */
+	private int getMaxKeyCount() {  // TODO merge w/ BTreeNode
+		return 2 * degree -1;
+	}
+	
+	/**
+	 * Calculate the max number of child pointers for a node given the desired degree
+	 * 
+	 * @return return the max number of child pointer a node can store
+	 */
+	private int getMaxChildCount () {  // TODO merge w/ BTreeNode
+		return 2 * degree;
+	}
+	
     /**
-     * Not part of the BTreeInterface, but required by given tests.
-     *
-     * @return The array of keys in sorted order.
+     * Read the metadata from the data file.
+     * @throws IOException
      */
-    public long[] getSortedKeyArray() {
-        return null;
+
+	public void readMetaData() throws IOException{
+		fileChannel.position(0);
+		
+		ByteBuffer tmpbuffer = ByteBuffer.allocateDirect(METADATA_SIZE);
+		
+		tmpbuffer.clear();
+		fileChannel.read(tmpbuffer);
+		
+		tmpbuffer.flip();
+        // TODO revisit
+		rootAddress = tmpbuffer.getLong();
+		treeSize = tmpbuffer.getInt();
+		degree = tmpbuffer.getInt();
+	}
+	
+	/**
+     * Write the metadata to the data file.
+     * @throws IOException
+     */
+    public void writeMetaData() throws IOException {
+        fileChannel.position(0);
+
+        metadataBuffer.clear();
+        metadataBuffer.putLong(rootAddress);
+        metadataBuffer.putInt(treeSize);
+        metadataBuffer.putInt(degree);
+
+        metadataBuffer.flip();
+        fileChannel.write(metadataBuffer);
     }
 
     /**
@@ -279,5 +493,14 @@ public class BTree implements BTreeInterface
 
         node.persisted = true;
     }
-
+    
+    /**
+     * Cleanup at the end. Writes the root node and metadata and closes the data file.
+     * @throws IOException
+     */
+    public void finishUp() throws IOException {
+        diskWrite(root);  // TODO
+        writeMetaData();
+        fileChannel.close();
+    }
 }
