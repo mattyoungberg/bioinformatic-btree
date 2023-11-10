@@ -21,32 +21,29 @@ import java.nio.ByteBuffer;
  * @author Justin Mello
  * @author Matt Youngberg
  */
-public class BTreeNode {
+class BTreeNode {
 
     /**
      * The keys of this {@link BTreeNode}, all {@link TreeObject}s.
+     * <p>
+     * Use {@link BTreeNode#keyCount} to learn how many keys are actually valid to read.
      */
-    public TreeObject[] keys;
+    TreeObject[] keys;
 
     /**
      * The positions on disk of the children of this {@link BTreeNode}.
      */
-    public long[] childPositions;
+    long[] childPositions;
 
     /**
      * Whether this {@link BTreeNode} is a leaf node (implying it has no children).
      */
-    public boolean leaf;
+    boolean leaf;
 
     /**
-     * The number of keys that this {@link BTreeNode} currently holds.
+     * The number of keys in the {@link BTreeNode} that are valid to read.
      */
-    public int keyCount;
-
-    /**
-     * Whether this {@link BTreeNode} has been persisted to disk.
-     */
-    public boolean persisted = true;  // TODO I'm still debating whether we need this...
+    int keyCount;
 
 
     /**
@@ -59,7 +56,7 @@ public class BTreeNode {
      * @param keys              The keys of this {@link BTreeNode}.
      * @param childPositions    The positions on disk of the children of this {@link BTreeNode}.
      */
-    public BTreeNode(TreeObject[] keys, long[] childPositions) {
+    BTreeNode(TreeObject[] keys, long[] childPositions) {
         this.keys = keys;
         this.childPositions = childPositions;
 
@@ -89,9 +86,8 @@ public class BTreeNode {
      *
      * @param t The minimum degree of the {@link BTree} that this {@link BTreeNode} is a part of.
      */
-    public BTreeNode(int t) {
+    BTreeNode(int t) {
         this(new TreeObject[getMaxKeyCount(t)], new long[getMaxChildCount(t)]);
-        this.persisted = false;
     }
 
     /**
@@ -101,7 +97,7 @@ public class BTreeNode {
      * @param t The minimum degree of the {@link BTree} that this {@link BTreeNode} is a part of.
      * @return  The derived size of this {@link BTreeNode} in bytes.
      */
-    public static int getByteSize(int t) {
+    static int getByteSize(int t) {
         return (TreeObject.BYTE_SIZE * getMaxKeyCount(t)) + (Long.BYTES * getMaxChildCount(t));
     }
 
@@ -112,10 +108,22 @@ public class BTreeNode {
      * This is because of the inefficiencies that would be introduced if the {@link ByteBuffer} had to be resized
      * dynamically on disk. Instead, the {@link ByteBuffer} is allocated ahead of time to be the size of the
      * {@link BTreeNode}, as determined by its minimum degree `t`.
+     * <p>
+     * A {@link BTreeNode} on disk is represented as a series of {@link TreeObject}s followed by a series of longs that
+     * represent the positions of the children of this {@link BTreeNode} on disk. Because the amount of keys and
+     * children on a {@link BTreeNode} is determined by its minimum degree `t`, you can visualize its layout on disk as
+     * such:
+     * <p>
+     * <pre>
+     * +------------------------+----------------+
+     * |       TreeObjects      | ChildPositions |
+     * |        12B(2t-1)       |     8B(2t)     |
+     * +------------------------+----------------+
+     * </pre>
      *
      * @param buffer The {@link ByteBuffer} to write this {@link BTreeNode} to.
      */
-    public void writeToByteBuffer(ByteBuffer buffer) {
+    void writeToByteBuffer(ByteBuffer buffer) {
         for (TreeObject key : keys) {
             if (key == null) {
                 // Write a default value or leave the space blank.
@@ -133,6 +141,19 @@ public class BTreeNode {
     /**
      * Read a {@link BTreeNode} from the given {@link ByteBuffer} with the given minimum degree.
      *
+     * <p>
+     * A {@link BTreeNode} on disk is represented as a series of {@link TreeObject}s followed by a series of longs that
+     * represent the positions of the children of this {@link BTreeNode} on disk. Because the amount of keys and
+     * children on a {@link BTreeNode} is determined by its minimum degree `t`, you can visualize its layout on disk as
+     * such:
+     * <p>
+     * <pre>
+     * +------------------------+----------------+
+     * |       TreeObjects      | ChildPositions |
+     * |        12B(2t-1)       |     8B(2t)     |
+     * +------------------------+----------------+
+     * </pre>
+     *
      * @param buffer    The {@link ByteBuffer} to read the {@link BTreeNode} from. This {@link ByteBuffer} must be
      *                  positioned at the start of the {@link BTreeNode} to read and have at least the number of bytes
      *                  required to read the {@link BTreeNode}. This can be determined by calling
@@ -140,7 +161,7 @@ public class BTreeNode {
      * @param t         The minimum degree of the {@link BTree} that this {@link BTreeNode} is a part of.
      * @return          A new {@link BTreeNode} with the data from the {@link ByteBuffer}.
      */
-    public static BTreeNode fromByteBuffer(ByteBuffer buffer, int t) {
+    static BTreeNode fromByteBuffer(ByteBuffer buffer, int t) {
         if (buffer.remaining() < getByteSize(t)) {
             throw new BufferUnderflowException();
         }
@@ -189,7 +210,7 @@ public class BTreeNode {
      * @param t The minimum degree of the {@link BTree} that this {@link BTreeNode} is a part of.
      * @return  The number of keys a {@link BTreeNode} with the given minimum degree `t` can hold.
      */
-    private static int getMaxKeyCount(int t) { return 2 * t - 1; }
+    static int getMaxKeyCount(int t) { return 2 * t - 1; }
 
     /**
      * Get how many children a {@link BTreeNode} with the given minimum degree `t` can hold.
@@ -200,5 +221,9 @@ public class BTreeNode {
      * @param t The minimum degree of the {@link BTree} that this {@link BTreeNode} is a part of.
      * @return  The number of children a {@link BTreeNode} with the given minimum degree `t` can hold.
      */
-    private static int getMaxChildCount(int t) { return 2 * t; }
+    static int getMaxChildCount(int t) { return 2 * t; }
+
+    static int getMinKeyCount(int t) { return t - 1; }
+
+    static int getMinChildCount(int t) { return t; }
 }
