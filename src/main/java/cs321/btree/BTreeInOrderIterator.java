@@ -54,10 +54,11 @@ class BTreeInOrderIterator implements Iterator<TreeObject> {
         this.stack = new Stack<>();
         this.btree = btree;
 
-        NodeFrame nodeFrame = new NodeFrame(btree.root);
-        this.stack.push(nodeFrame);
-
-        pushAllLeftNodes(btree.root.childPositions[0]); // Initialize the stack with the leftmost path of the tree
+        if (btree.getSize() > 0) {
+            NodeFrame nodeFrame = new NodeFrame(btree.root);
+            this.stack.push(nodeFrame);
+            pushAllLeftNodes(btree.root.childPositions[0]); // Initialize the stack with the leftmost path of the tree
+        }
     }
 
     /**
@@ -83,26 +84,29 @@ class BTreeInOrderIterator implements Iterator<TreeObject> {
 
         NodeFrame frame = stack.peek();
 
-        if (frame.processChildNext) {
-            // Process the child: update this node, traverse down, call next.
-            frame.processChildNext = false;
-            try {
-                pushAllLeftNodes(frame.node.childPositions[frame.index]);
-            } catch (IOException e) {
-                throw new RuntimeException(e);  // Casting to RuntimeException to meet the Iterator interface
-            }
-            return next();
-        } else {
-            // Index beyond keyCount determines if we're done processing the node. If so, pop and call again
-            if (frame.index == frame.node.keyCount) {
-                stack.pop();
-                return next();
-            }
-            // Process the key
+        if (frame.node.leaf) {
             TreeObject obj = frame.node.keys[frame.index];
-            frame.processChildNext = true;
             frame.index++;
+            if (frame.index == frame.node.keyCount) {
+                popFrameAndFinishedAncestors(frame);
+            }
             return obj;
+        } else {  // Guaranteed to have children
+            if (frame.processChildNext) {  // if not a leaf, there is guaranteed to be a child at position index + 1
+                try {
+                    pushAllLeftNodes(frame.node.childPositions[frame.index + 1]);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+                frame.processChildNext = false;
+                frame.index++;
+                return next();
+            } else {  // process key at index
+                TreeObject obj = frame.node.keys[frame.index];
+                frame.processChildNext = true;
+//                frame.index++;
+                return obj;
+            }
         }
     }
 
@@ -123,5 +127,23 @@ class BTreeInOrderIterator implements Iterator<TreeObject> {
         stack.push(nodeFrame);
 
         pushAllLeftNodes(nodeFrame.node.childPositions[0]);
+    }
+
+    /**
+     * Pop a given node and all its finished ancestors off the stack.
+     *
+     * @param frame the node to that will be popped, and whose ancestors will be popped if they are finished
+     */
+    private void popFrameAndFinishedAncestors(NodeFrame frame) {
+        stack.pop();  // Pop the node
+
+        while (!stack.isEmpty()) {
+            NodeFrame parent = stack.peek();
+            if (parent.index == parent.node.keyCount) {
+                stack.pop();
+            } else {
+                break;  // Parent has more keys or children to process
+            }
+        }
     }
 }
