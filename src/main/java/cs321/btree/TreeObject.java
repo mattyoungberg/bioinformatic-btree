@@ -1,5 +1,6 @@
 package cs321.btree;
 
+import java.io.PrintWriter;
 import java.nio.BufferOverflowException;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
@@ -24,6 +25,18 @@ import java.nio.ByteBuffer;
  * @author Matt Youngberg
  */
 public class TreeObject implements Comparable<TreeObject> {
+
+    /**
+     * Defines the length of the subsequences that the {@link TreeObject} class represents.
+     * <p>
+     * This should be set by users of the BTree if they want to be able to call {@link BTree#dumpToFile(PrintWriter)}.
+     * <p>
+     * Note that this is a class variable, not an instance variable. This is because all {@link TreeObject}s
+     * represent subsequences of the same length, and we don't want to have to encode this length in every
+     * {@link TreeObject} instance on disk.
+     */
+    public static int subsequenceLength = -1;
+
     /**
      * The size of a {@link TreeObject} in bytes.
      */
@@ -98,6 +111,16 @@ public class TreeObject implements Comparable<TreeObject> {
      * Create a new {@link TreeObject} from the next bytes to be consumed in a {@link ByteBuffer}.
      * This method assumes that the buffer has at least {@link TreeObject#BYTE_SIZE} remaining bytes.
      * If there are not enough bytes remaining, an {@link BufferUnderflowException} will be thrown.
+     * <p>
+     * A {@link TreeObject} is just a subsequence and a frequency, which are 8B and 4B respectively. So you can
+     * visualize it on disk like this:
+     * <p>
+     * <pre>
+     * +------------------------+------------+
+     * |        Subsequence     |    Freq    |
+     * |          8B            |     4B     |
+     * +------------------------+------------+
+     * </pre>
      *
      * @param buffer                    The {@link ByteBuffer} to read from.
      * @return                          A new {@link TreeObject} with the data from the {@link ByteBuffer}.
@@ -116,6 +139,16 @@ public class TreeObject implements Comparable<TreeObject> {
      * Write the data of this {@link TreeObject} instance to a {@link ByteBuffer}.
      * This method assumes that the buffer has been properly allocated with enough space.
      * If the buffer does not have enough space, an {@link BufferOverflowException} will be thrown.
+     * <p>
+     * A {@link TreeObject} is just a subsequence and a frequency, which are 8B and 4B respectively. So you can
+     * visualize it on disk like this:
+     * <p>
+     * <pre>
+     * +------------------------+------------+
+     * |        Subsequence     |    Freq    |
+     * |          8B            |     4B     |
+     * +------------------------+------------+
+     * </pre>
      *
      * @param buffer                    The {@link ByteBuffer} to write to.
      * @throws BufferOverflowException  if the buffer does not have enough space.
