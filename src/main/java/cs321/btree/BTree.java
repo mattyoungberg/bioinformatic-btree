@@ -8,7 +8,9 @@ import java.io.PrintWriter;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.SQLException;
 import java.util.Iterator;
 
 /**
@@ -103,6 +105,11 @@ public class BTree implements BTreeInterface, Iterable<TreeObject> {
 	private int height;
 
 	/**
+	 * The path to the file that stores the {@link BTree} on disk
+	 */
+	private Path filePath;
+
+	/**
 	 * The root node of the {@link BTree}, which is always in memory
 	 */
 	BTreeNode root;  // Package private for BTreeInOrderIterator
@@ -115,7 +122,8 @@ public class BTree implements BTreeInterface, Iterable<TreeObject> {
 	 * @param fileName 		file name that stores the {@link BTree} on disk
 	 */
 	public BTree(String fileName) throws BTreeException {
-		boolean exists = Paths.get(fileName).toFile().exists();
+		this.filePath = Paths.get(fileName);
+		boolean exists = filePath.toFile().exists();
 		if (exists) {
 			// Open the file for processing, get FileChannel
 			try (RandomAccessFile file = new RandomAccessFile(fileName, "rw")) {
@@ -175,6 +183,7 @@ public class BTree implements BTreeInterface, Iterable<TreeObject> {
 	 * @param fileName		file name that will the {@link BTree} on disk
 	 */
 	public BTree(int degree, String fileName) throws BTreeException {
+		this.filePath = Paths.get(fileName);
 		if (degree == 0) {
 			this.t = calculateOptimalT();
 		}  else if (degree == 1) {
@@ -319,10 +328,11 @@ public class BTree implements BTreeInterface, Iterable<TreeObject> {
 	 *
 	 * @throws IOException	if an I/O error occurs
 	 */
-	public void finishUp() throws IOException {
+	public void finishUp() throws IOException, SQLException {
 		diskWrite(root, rootPosition);
 		writeMetaData();
 		fileChannel.close();
+		BTreeSQLiteDBBuilder.create(this, filePath);
 	}
 
 	/**
