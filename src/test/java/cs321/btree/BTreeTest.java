@@ -1,13 +1,17 @@
 package cs321.btree;
 
+import cs321.create.SequenceUtils;
 import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 
 import static org.junit.Assert.*;
 
@@ -450,6 +454,45 @@ public class BTreeTest {
         assertEquals(2, obj.getCount());
 
         assertTrue(validateBTreeInserts(b, input));
+    }
+
+    @Test
+    public void testDumpToFile() throws BTreeException, IOException {
+        BTree btree = new BTree(2, testFilename);
+        TreeObject.subsequenceLength = 1;
+
+        long a = SequenceUtils.dnaStringToLong("a");
+        long t = SequenceUtils.dnaStringToLong("t");
+        long c = SequenceUtils.dnaStringToLong("c");
+        long g = SequenceUtils.dnaStringToLong("g");
+
+        btree.insert(new TreeObject(a));
+
+        btree.insert(new TreeObject(t));
+        btree.insert(new TreeObject(t));
+        btree.insert(new TreeObject(t));
+        btree.insert(new TreeObject(t));
+
+        btree.insert(new TreeObject(c));
+        btree.insert(new TreeObject(c));
+
+        btree.insert(new TreeObject(g));
+        btree.insert(new TreeObject(g));
+        btree.insert(new TreeObject(g));
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        PrintWriter writer = new PrintWriter(out);
+        btree.dumpToFile(writer);
+        writer.close();
+        String contents = out.toString();
+
+        assertEquals("a 1\nc 2\ng 3\nt 4\n", contents);
+    }
+
+    @Test
+    public void testIterator() throws BTreeException {
+        BTree btree = new BTree(2, testFilename);
+        assertNotNull(btree.iterator());
     }
 
 

@@ -432,14 +432,16 @@ public class BTree implements BTreeInterface, Iterable<TreeObject> {
 	private void insertNonFull(BTreeNode x, TreeObject k, long xPosition) throws IOException {
 		int i = x.keyCount - 1;
 		if (x.leaf) {																// inserting into a leaf
+			for (int j = 0; j < x.keyCount; j++) {									// double check that we don't have a duplicate
+				if (k.getSubsequence() == x.keys[j].getSubsequence()) {				// if we do...
+					x.keys[j].incrementFrequency();
+					diskWrite(x, xPosition);
+					return;															// ... return early.
+				}
+			}
 			while (i >= 0 && k.getSubsequence() < x.keys[i].getSubsequence()) {		// shift keys in x to make room for k
 				x.keys[i+1] = x.keys[i];
 				i--;
-			}
-			if (i >= 0 && k.getSubsequence() == x.keys[i].getSubsequence()) {		// Check if we have a duplicate
-				x.keys[i].incrementFrequency();
-				diskWrite(x, xPosition);
-				return;
 			}
 			x.keys[i+1] = k;														// insert k in x
 			x.keyCount++;															//  now x has 1 more key
@@ -453,7 +455,6 @@ public class BTree implements BTreeInterface, Iterable<TreeObject> {
 			BTreeNode y = diskRead(x.childPositions[i]);
 			if (y.keyCount == BTreeNode.getMaxKeyCount(t)) {						// split the child if it is full
 				splitChild(x, i, xPosition);
-//				x = diskRead(xPosition);											// reread y after split...
 				y = diskRead(x.childPositions[i]);									// reread y after split...
 				if (k.getSubsequence() > x.keys[i].getSubsequence()) {				// does k go into x.c[i] or x.c[i+1]
 					i++;
