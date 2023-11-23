@@ -41,14 +41,8 @@ jobs:
         distribution: 'zulu'
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
-
-      # Skip running tests, as this startup code intentionally
-      # contains failing tests that are used as templates.
-      #
-      # For your team, you can enable running these tests
-      # by uncommenting the next two lines
-#    - name: Run all jUnit tests with Gradle
-#      run: ./gradlew test
+    - name: Run all jUnit tests with Gradle
+      run: ./gradlew test
     - name: Create jar GeneBankCreateBTree with Gradle
       run: ./gradlew createJarGeneBankCreateBTree
     - name: Create jar GeneBankSearchBTree with Gradle

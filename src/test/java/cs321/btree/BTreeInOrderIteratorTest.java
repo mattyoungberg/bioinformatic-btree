@@ -1,5 +1,6 @@
 package cs321.btree;
 
+import cs321.create.SequenceUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -379,6 +380,78 @@ public class BTreeInOrderIteratorTest {
         } catch (java.util.NoSuchElementException e) {
             // pass
         }
+    }
+
+    //////////////////////////////////////
+    // Found bugs whose tests verify fixes
+    //////////////////////////////////////
+
+    /**
+     * Tests the general case that we can insert DNA bases and iterate over them in order.
+     * <p>
+     * The original bug here stemmed from an error in the insertion procedure. The bug would show itself any time that
+     * a duplicate was attempting to be inserted into a leaf node. The procedure would copy the references of the
+     * existing elements to make room for the new element, but it would do so before checking for duplicates. It would
+     * find the duplicate correctly, increment its frequency, and return early, but the copies that had been made to
+     * make space for the insertion were preemptive; when an insertion ultimately did not happen, two references to a
+     * single `TreeObject` would exist in the leaf node, and the iterator would return the same element twice.
+     *
+     * @throws BTreeException   if construction of the BTree fails
+     * @throws IOException      if insertion into or iteration over the BTree fails
+     */
+    @Test
+    public void testAddingSubsequences() throws BTreeException, IOException {
+        BTree btree = new BTree(2, testFile.getName());
+        TreeObject.subsequenceLength = 1;
+
+        long a = SequenceUtils.dnaStringToLong("a");
+        long t = SequenceUtils.dnaStringToLong("t");
+        long c = SequenceUtils.dnaStringToLong("c");
+        long g = SequenceUtils.dnaStringToLong("g");
+
+        // Insertion order matters here to duplicate the bug
+
+        btree.insert(new TreeObject(a));
+
+        btree.insert(new TreeObject(t));
+        btree.insert(new TreeObject(t));
+        btree.insert(new TreeObject(t));
+        btree.insert(new TreeObject(t));
+
+        btree.insert(new TreeObject(c));
+        btree.insert(new TreeObject(c));
+
+        btree.insert(new TreeObject(g));
+        btree.insert(new TreeObject(g));  // This is the insertion that would cause the bug
+        btree.insert(new TreeObject(g));
+
+        BTreeInOrderIterator iter = new BTreeInOrderIterator(btree);
+
+        // A
+        assertTrue(iter.hasNext());
+        TreeObject aObj = iter.next();
+        assertEquals(0L, aObj.getSubsequence());
+        assertEquals(1, aObj.getCount());
+
+        // C
+        assertTrue(iter.hasNext());
+        TreeObject cObj = iter.next();
+        assertEquals(1L, cObj.getSubsequence());
+        assertEquals(2, cObj.getCount());
+
+        // G
+        assertTrue(iter.hasNext());
+        TreeObject gObj = iter.next();
+        assertEquals(2L, gObj.getSubsequence());
+        assertEquals(3, gObj.getCount());
+
+        // T
+        assertTrue(iter.hasNext());
+        TreeObject tObj = iter.next();
+        assertEquals(3L, tObj.getSubsequence());
+        assertEquals(4, tObj.getCount());
+
+        assertFalse(iter.hasNext());
     }
 
     // Consider adding a check for concurrent modification exception
