@@ -40,24 +40,24 @@ public class GeneBankCreateBTreeArguments
         {
             return false;
         }
-        if (debugLevel != other.debugLevel)
+        if (getDebugLevel() != other.getDebugLevel())
         {
             return false;
         }
-        if (degree != other.degree)
+        if (getDegree() != other.getDegree())
         {
             return false;
         }
-        if (gbkFileName == null)
+        if (getGbkFileName() == null)
         {
-            if (other.gbkFileName != null)
+            if (other.getGbkFileName() != null)
             {
                 return false;
             }
         }
         else
         {
-            if (!gbkFileName.equals(other.gbkFileName))
+            if (!getGbkFileName().equals(other.getGbkFileName()))
             {
                 return false;
             }
@@ -79,11 +79,41 @@ public class GeneBankCreateBTreeArguments
         //this method was generated using an IDE
         return "GeneBankCreateBTreeArguments{" +
                 "useCache=" + useCache +
-                ", degree=" + degree +
-                ", gbkFileName='" + gbkFileName + '\'' +
+                ", degree=" + getDegree() +
+                ", gbkFileName='" + getGbkFileName() + '\'' +
                 ", subsequenceLength=" + subsequenceLength +
                 ", cacheSize=" + cacheSize +
-                ", debugLevel=" + debugLevel +
+                ", debugLevel=" + getDebugLevel() +
                 '}';
     }
+
+	/**
+	 * @return the gbkFileName
+	 */
+	public String getGbkFileName() {
+		return gbkFileName;
+	}
+	
+	/**
+	 * @return the subsequenceLength
+	 */
+	public int getSubsequenceLength() {
+		return subsequenceLength;
+	}
+
+	/**
+	 * @return the degree
+	 */
+	public int getDegree() {
+		return degree;
+	}
+
+	/**
+	 * @return the debugLevel
+	 */
+	public int getDebugLevel() {
+		return debugLevel;
+	}
+
+	
 }

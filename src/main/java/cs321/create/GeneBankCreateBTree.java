@@ -2,6 +2,8 @@ package cs321.create;
 
 import java.io.*;
 import java.util.List;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -10,7 +12,9 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
 import cs321.btree.BTree;
+import cs321.btree.TreeObject;
 import cs321.common.ParseArgumentException;
+
 
 
 
@@ -19,10 +23,54 @@ public class GeneBankCreateBTree
 
     public static void main(String[] args) throws Exception
     {
-        System.out.println("Hello world from cs321.create.GeneBankCreateBTree.main");
+        //System.out.println("Hello world from cs321.create.GeneBankCreateBTree.main");
         GeneBankCreateBTreeArguments geneBankCreateBTreeArguments = parseArgumentsAndHandleExceptions(args);
-
-
+        
+        //Designate Path to the file for gbkSequenceIterator and instantiate a new gbkSequenceIterator to read gbkFile
+        Path filePath = Paths.get(geneBankCreateBTreeArguments.getGbkFileName());
+        GeneBankSubsequenceIterator gbkSubseqIterator = new GeneBankSubsequenceIterator(filePath, geneBankCreateBTreeArguments.getSubsequenceLength());
+        
+        int subsequencesInserted = 0; // int to track inserts into BTree
+        
+        //create new file name to store this BTree in
+        String btreeFileName = geneBankCreateBTreeArguments.getGbkFileName().substring(0, geneBankCreateBTreeArguments.getGbkFileName().indexOf("."))+ "BTreeFile";
+        //Potential error if Paths does not create a new file if the given file does not exist
+        
+        //instantiate new BTree based on degree selection new BTree file name
+        BTree testBTree = new BTree(geneBankCreateBTreeArguments.getDegree(), btreeFileName);
+        
+        //iterate through gbkfile to add each subsequence into BTree
+        while(gbkSubseqIterator.hasNext()) {
+        	// read next subsequence
+        	String tempSubsequenceString = gbkSubseqIterator.next();
+        	//convert to long 
+        	long tempSubsequenceLong = SequenceUtils.dnaStringToLong(tempSubsequenceString);
+        	//create Tree object
+        	TreeObject tempTreeObject = new TreeObject(tempSubsequenceLong);
+        	//insert new TreeObject
+        	try { 
+        		testBTree.insert(tempTreeObject);
+        		subsequencesInserted ++;
+        	} catch(IOException e) {
+        		System.out.println(e);
+        	}
+        	
+        }
+        
+      
+                
+        // finished writing into BTree
+        testBTree.finishUp();
+        //print summary for debug 0 
+        if (geneBankCreateBTreeArguments.getDebugLevel() >= 0) {
+        	System.out.println("Successfully inserted " + subsequencesInserted +" subsequences!");
+        }
+        //dump to file for debug 1 
+        if (geneBankCreateBTreeArguments.getDebugLevel()>= 1) {
+        	PrintWriter printWriter =  new PrintWriter(btreeFileName + "dump");
+        	testBTree.dumpToFile(printWriter);
+        }
+        
     }
 
     private static GeneBankCreateBTreeArguments parseArgumentsAndHandleExceptions(String[] args)
@@ -77,6 +125,7 @@ public class GeneBankCreateBTree
             int degreeValue = Integer.parseInt(args[1]);
             if (degreeValue < 0 || degreeValue > 31) {
                 throw new IllegalArgumentException("Degree must be between 0 and 31");
+                //this should be changed to not allow degree 1 to exist as degree 0 is only available to allow the program to select an optimal degree currently degree 1 throws an error in BTree class. 
             }
 
             // Don't validate 'gbkfile' here; given tests can't handle it.
