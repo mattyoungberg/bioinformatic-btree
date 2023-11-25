@@ -53,11 +53,11 @@ public class GeneBankCreateBTree
         		subsequencesInserted ++;
         	} catch(IOException e) {
         		System.out.println(e);
+        		System.exit(1);
         	}
         	
         }
         
-      
                 
         // finished writing into BTree
         testBTree.finishUp();
@@ -70,7 +70,6 @@ public class GeneBankCreateBTree
         	PrintWriter printWriter =  new PrintWriter(btreeFileName + "dump");
         	testBTree.dumpToFile(printWriter);
         }
-        
     }
 
     private static GeneBankCreateBTreeArguments parseArgumentsAndHandleExceptions(String[] args)
