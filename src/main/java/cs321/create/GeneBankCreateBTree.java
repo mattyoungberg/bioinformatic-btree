@@ -29,6 +29,12 @@ public class GeneBankCreateBTree
         
     }
 
+    /**
+     * This method takes in the command line arguments and will parse the arguments to return an object containing the appropriate arguments or print a usage method and exit the program
+     *  
+     * @param args - command line arguments provided with program call. 
+     * @return - validated arguments object
+     */
     private static GeneBankCreateBTreeArguments parseArgumentsAndHandleExceptions(String[] args)
     {
         GeneBankCreateBTreeArguments geneBankCreateBTreeArguments = null;
@@ -43,13 +49,26 @@ public class GeneBankCreateBTree
         return geneBankCreateBTreeArguments;
     }
 
+    /**
+     * This method prints when invalid arguments are detected and will print an appropriately formatted usage example and exit the program with a nonzero status. 
+     *  
+     * @param errorMessage - error message provided by parse argument exception 
+     */
     private static void printUsageAndExit(String errorMessage)
     {
-        System.out.println("java -jar build/libs/GeneBankCreateBTree.jar --cache=<0|1>  --degree=<btree-degree> ");
+    	System.out.println(errorMessage);
+        System.out.println("Usage: java -jar build/libs/GeneBankCreateBTree.jar --cache=<0|1>  --degree=<btree-degree> ");
         System.out.println("\t--gbkfile=<gbk-file> --length=<sequence-length> [--cachesize=<n>] [--debug=0|1]");
         System.exit(1);
     }
 
+    /**
+     * This method accepts the command line arguments, args, and attempts to parse the arguments on position first and if not able will attempt to parse arguments by name. 
+     * invalid argument entries will throw a ParseArgumentException to be handled in generating error message
+     * @param args- command line arguments provided by user.
+     * @return - validate GeneBankCreateBTreeArguments object
+     * @throws ParseArgumentException - exception issue encounter parsing arguments
+     */
     public static GeneBankCreateBTreeArguments parseArguments(String[] args) throws ParseArgumentException {
         try {
             return parsePositionalArgs(args);  // try parsing as positional first; tests require it
@@ -65,6 +84,14 @@ public class GeneBankCreateBTree
 
     }
 
+    /**
+     * This method parses the command line arguments passed based on the expected order input base on usage example. 
+     * Invalid arguments will generate an error message to describe the encountered issue.  
+     * 
+     * @param args - command line arguments entered by user
+     * @return - validated GeneBankCreateBTreeArguments object
+     * @throws ParseArgumentException - exception with helpful description of encountered issue
+     */
     public static GeneBankCreateBTreeArguments parsePositionalArgs(String[] args) throws ParseArgumentException {
         if (args.length < 4) {
             throw new ParseArgumentException("Insufficient arguments. Required: cache degree gbkfile length");
@@ -128,6 +155,13 @@ public class GeneBankCreateBTree
         }
     }
 
+    /**
+     * This method utilizes the apache commons cli package to generate options for each command line argument available for the program and uses the 
+     * available methods to create and validate each command line argument as a separate Option. 
+     * @param args - command line arguments provided in program call
+     * @return - validated GeneBankCreateBTreeArguments object
+     * @throws ParseArgumentException- exception with helpful description of encountered issue
+     */
     public static GeneBankCreateBTreeArguments parseNamedArgs(String[] args) throws ParseArgumentException {
         Options options = new Options();
 
@@ -223,6 +257,16 @@ public class GeneBankCreateBTree
         );
     }
     
+    /**
+     * This method will take in the command line arguments and, using a new GeneBankSubsequenceIterator,
+     * read through the provided gbkfile. It will also create a new BTree file similarly named to the provided gbkfile with an appended BTreeFile. 
+     * After converting the subsequences to tree objects they will be inserted into the BTree. Exceptions thrown while inserting into BTree will 
+     * print the message and exit the program with a nonzero status. 
+     * debug level 0 prints a sum of all subsequences added to the BTree, frequency increases of duplicates will be considered a successful addition. 
+     * debug level 1 uses the BTreeDumpToFile to output the created tree to a dump file, dump is appended to the filename to designate. 
+     * 
+     * @param args Appropriately validated command line arguments
+     */
     private static void createBTree (GeneBankCreateBTreeArguments args) {
     	try {
     		Path filePath = Paths.get(args.getGbkFileName());
