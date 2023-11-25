@@ -106,7 +106,7 @@ public class GeneBankCreateBTree
 
             // Validate and parse 'degree'
             int degreeValue = Integer.parseInt(args[1]);
-            if (degreeValue < 2 || degreeValue > 31 || degreeValue == 0) {
+            if (degreeValue < 2 || degreeValue > 31 && degreeValue != 0) {
                 throw new IllegalArgumentException("Degree must be 0 or be between 2 and 31");
                 //changed to not allow degree 1 to exist as degree 0 is only available to allow the program to select an optimal degree avoids exception from BTree. 
             }
@@ -210,12 +210,14 @@ public class GeneBankCreateBTree
             if (cacheValue < 0 || cacheValue > 1) {
                 throw new IllegalArgumentException("Cache must be 0 or 1");
             }
+            
 
             // Validate 'degree'
             int degreeValue = Integer.parseInt(cmd.getOptionValue("degree"));
-            if (degreeValue < 0 || degreeValue > 31) {
+            if (degreeValue < 2 || degreeValue > 31 && degreeValue != 0) {
                 throw new IllegalArgumentException("Degree must be between 0 and " + 31);
             }
+          //changed to not allow degree 1 to exist as degree 0 is only available to allow the program to select an optimal degree avoids exception from BTree. 
 
             // Don't validate 'gbkfile' here; given tests can't handle it.
             // It will be validated when it is opened
