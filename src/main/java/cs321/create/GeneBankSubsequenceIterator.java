@@ -361,10 +361,10 @@ public class GeneBankSubsequenceIterator implements Iterator<String>, AutoClosea
     /**
      * Close the file channel.
      *
-     * @throws Exception    If there is an error closing the file channel.
+     * @throws IOException  If there is an error closing the file channel.
      */
     @Override
-    public void close() throws Exception {
+    public void close() throws IOException {
         fileChannel.close();
         this.byteBuffer.clear();
         consumeCharBuffer();
