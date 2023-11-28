@@ -115,6 +115,11 @@ public class BTree implements BTreeInterface, Iterable<TreeObject> {
 	BTreeNode root;  // Package private for BTreeInOrderIterator
 
 	/**
+	 * The cache of the {@link BTree}, which is optional
+	 */
+	Cache<Long, BTreeNode> cache = null;  // Left null to leave old constructors alone; code much check for null
+
+	/**
 	 * Construct a BTree that already exists on disk, or if not, create a new one with an optimal degree.
 	 * <p>
 	 * {@link BTree}s are designed to maximize their degree <code>t</code> under a constraint of 4096KB disk blocks.
@@ -183,6 +188,68 @@ public class BTree implements BTreeInterface, Iterable<TreeObject> {
 	 * @param fileName		file name that will the {@link BTree} on disk
 	 */
 	public BTree(int degree, String fileName) throws BTreeException {
+		this.filePath = Paths.get(fileName);
+		if (degree == 0) {
+			this.t = calculateOptimalT();
+		}  else if (degree == 1) {
+			throw new IllegalArgumentException("Degree must be greater than 1");
+		} else {
+			this.t = degree;
+		}
+		this.rootPosition = METADATA_SIZE;  // Manually set before fileChannel is initialized
+		this.keyCount = 0;
+		this.height = 0;
+
+		// Open the file for processing, get FileChannel
+		try {
+			this.fileChannel = new RandomAccessFile(fileName, "rw").getChannel();
+		} catch (FileNotFoundException e) {				// Given test `testBTreeCreateDegree` only expects
+			throw new BTreeException(e.getMessage());  	// BTreeException, so we cast here, instead of raising an I/O.
+		}
+
+		// Write metadata to file
+		this.metadataBuffer = ByteBuffer.allocateDirect(METADATA_SIZE);
+		try {
+			writeMetaData();
+		} catch (IOException e) {
+			throw new BTreeException(e.getMessage());
+		}
+
+		// Allocate nodeBuffer, write root node
+		this.nodeBuffer = ByteBuffer.allocateDirect(BTreeNode.getByteSize(t));
+		try {
+			createBTree();  // See page 506 of textbook, B-TREE-CREATE(T)
+		} catch (IOException e) {
+			throw new BTreeException(e.getMessage());  // Given test `testBTreeCreateDegree` only take BTreeException
+		}
+	}
+
+	/**
+	 * Create a new BTree with a cache of the given capacity.
+	 * <p>
+	 * If a BTree file is found at the given fileName, the BTree will be constructed from the file. If not, a new BTree
+	 * will be created with the given degree.
+	 * <p>
+	 * If no cache is required, use the other constructors.
+	 * <p>
+	 * This constructor is a direct response to the project requirement to extend this class at the end with a cache. I
+	 * do not think it would be wise at this point to refactor all the constructors to require its consideration, since
+	 * those constructors were given in the project files and given tests were dependent on them. Therefore, this
+	 * constructor can be used by the command line programs to create a BTree with a cache, but the other constructors
+	 * should be used either by tests or by the command line programs when a cache is not required.
+	 *
+	 * @param degree			the degree of the BTree
+	 * @param fileName			the file name of the BTree
+	 * @param cacheCapacity		the capacity of the cache
+	 */
+	public BTree(int degree, String fileName, int cacheCapacity) throws BTreeException {
+		// Cache setup code
+		if (cacheCapacity <= 0) {
+			throw new IllegalArgumentException("Cache capacity must be greater than 0");
+		}
+		this.cache = new Cache<>(cacheCapacity);
+
+		// Duplicated code from BTree(int, String) constructor
 		this.filePath = Paths.get(fileName);
 		if (degree == 0) {
 			this.t = calculateOptimalT();
@@ -357,6 +424,7 @@ public class BTree implements BTreeInterface, Iterable<TreeObject> {
 	 */
 	private void createBTree() throws IOException {
 		BTreeNode newRoot = new BTreeNode(t);
+		newRoot.setKey(rootPosition);
 		newRoot.leaf = true;
 		newRoot.keyCount = 0;
 		diskWrite(newRoot, rootPosition);
@@ -377,6 +445,7 @@ public class BTree implements BTreeInterface, Iterable<TreeObject> {
 		s.childPositions[0] = rootPosition;
 		root = s;
 		rootPosition = getNextPosition();
+		root.setKey(rootPosition);
 		diskWrite(root, rootPosition);  // Has to be written to disk so splitChild can figure out where new node goes
 		splitChild(s, 0, rootPosition);
 		height++;  // height can only increase at split of the root node: pg 508, near the bottom
@@ -419,6 +488,7 @@ public class BTree implements BTreeInterface, Iterable<TreeObject> {
 		x.keyCount++;														// x has gained a child
 		diskWrite(y, x.childPositions[i]);
 		diskWrite(z, x.childPositions[i + 1]);
+		z.setKey(x.childPositions[i + 1]);
 		diskWrite(x, xPosition);
 	}
 
@@ -607,12 +677,26 @@ public class BTree implements BTreeInterface, Iterable<TreeObject> {
             throw new IllegalArgumentException("cannot read node from tree metadata");
         }
 
+		if (this.cache != null) {  // If cache is enabled, check it first and return early if found.
+			BTreeNode node = this.cache.get(position);
+			if (node != null) {
+				return node;
+			}
+		}
+
 		fileChannel.position(position);
 		nodeBuffer.clear();
 		fileChannel.read(nodeBuffer);
 		nodeBuffer.flip();
 
-        return BTreeNode.fromByteBuffer(nodeBuffer, getDegree());
+        BTreeNode node = BTreeNode.fromByteBuffer(nodeBuffer, getDegree());
+		node.setKey(position);
+
+		if (this.cache != null) {  // If cache is enabled, add the node to it.
+			this.cache.add(position, node);
+		}
+
+		return node;
     }
 
     /**
