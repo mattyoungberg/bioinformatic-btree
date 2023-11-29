@@ -21,7 +21,7 @@ import java.nio.ByteBuffer;
  * @author Justin Mello
  * @author Matt Youngberg
  */
-class BTreeNode {
+class BTreeNode implements KeyInterface<Long> {
 
     /**
      * The keys of this {@link BTreeNode}, all {@link TreeObject}s.
@@ -44,6 +44,13 @@ class BTreeNode {
      * The number of keys in the {@link BTreeNode} that are valid to read.
      */
     int keyCount;
+
+    /**
+     * The position on disk of this {@link BTreeNode}. Should be set by the BTree when creating or reconstituting.
+     * <p>
+     * This isn't the cleanest solution, but this is the least invasive to the rest of the codebase.
+     */
+    long diskPosition = -1L;
 
 
     /**
@@ -226,4 +233,26 @@ class BTreeNode {
     static int getMinKeyCount(int t) { return t - 1; }
 
     static int getMinChildCount(int t) { return t; }
+
+    /**
+     * Get the key of the {@link BTreeNode}.
+     * <p>
+     * This will always be its position on disk, unless unset, in which case, it will be -1;
+     *
+     * @return              They key of the {@link BTreeNode}, or -1 if unset.
+     */
+    public Long getKey() {
+        return diskPosition;
+    }
+
+    /**
+     * Set the key of the {@link BTreeNode}.
+     * <p>
+     * This should always be its position on disk.
+     *
+     * @param diskPosition  The key of the {@link BTreeNode}.
+     */
+    public void setKey(long diskPosition) {
+        this.diskPosition = diskPosition;
+    }
 }
