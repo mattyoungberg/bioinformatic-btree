@@ -78,12 +78,8 @@ public class BTreeSQLiteDBBuilder {
             throw new IllegalArgumentException("Path must be a file");
         }
         String fileName = path.toString();
-        if (!fileName.endsWith(".gbk")) {
-            throw new IllegalArgumentException("Path must be a .gbk file");
-        }
-
         String base = fileName.substring(0, fileName.lastIndexOf(".gbk"));
-        return base + "." + btree.getDegree() + ".db";
+        return base + "." + TreeObject.subsequenceLength + ".db";
     }
 
     /**

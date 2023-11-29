@@ -296,6 +296,7 @@ public class BTree implements BTreeInterface, Iterable<TreeObject> {
 			String subSeqString = SequenceUtils.longToDnaString(obj.getSubsequence(), TreeObject.subsequenceLength);
 			out.println(subSeqString + " " + obj.getCount());
 		}
+		out.flush();
 	}
 
 	/**
@@ -331,8 +332,9 @@ public class BTree implements BTreeInterface, Iterable<TreeObject> {
 	public void finishUp() throws IOException, SQLException {
 		diskWrite(root, rootPosition);
 		writeMetaData();
-		fileChannel.close();
+		fileChannel.force(true);
 		BTreeSQLiteDBBuilder.create(this, filePath);
+		fileChannel.close();
 	}
 
 	/**
@@ -635,7 +637,6 @@ public class BTree implements BTreeInterface, Iterable<TreeObject> {
 		node.writeToByteBuffer(nodeBuffer);
 		nodeBuffer.flip();
 		fileChannel.write(nodeBuffer);
-		fileChannel.force(true);
     }
 
 	/**
