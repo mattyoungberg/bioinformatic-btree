@@ -6,31 +6,52 @@ import java.util.Scanner;
 import java.lang.String;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.DefaultParser;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.Options;
+import java.sql.SQLException;
 
 import cs321.btree.BTree;
 import cs321.btree.BTreeException;
 import cs321.btree.TreeObject;
 
 import cs321.common.ParseArgumentException;
-
 import cs321.create.SequenceUtils;
 
+
+/**
+ * A program that search a BTree file from a query file.
+ * <p>
+ * Run `java -jar build/libs/GeneBankSearchBTree.jar --help` for usage information.
+ *
+ * @author Derek Caplinger
+ * @author Matt Youngberg
+ */
 public class GeneBankSearchBTree
 {
 
+	 /**
+     * The entry point for the GeneBankSearchBTree program.
+     * <p>
+     * This method will parse the command line arguments and then search a BTree file based on the provided Query file.
+     * Output will be generated based on the selected debug level.
+     *
+     * @param args command line arguments provided with program call
+     * @throws BTreeException if there is an error creating the BTree
+     * @throws IOException    if there is an error reading the gbk file or writing the BTree file
+     * @throws SQLException   if there is an error creating/writing to a SQLite database
+     */
     public static void main(String[] args) throws Exception
     {
-        System.out.println("Hello world from cs321.search.GeneBankSearchBTree.main");
+        //System.out.println("Hello world from cs321.search.GeneBankSearchBTree.main");
         GeneBankSearchBTreeArguments geneBankSearchBTreearguments = parseArgumentsAndHandleExceptions(args);
         searchBTree(geneBankSearchBTreearguments);
     }
 
+    /**
+     * This method takes in the command line arguments and will parse the arguments to return an object containing the
+     * appropriate arguments or print a usage method and exit the program
+     *
+     * @param args command line arguments provided with program call
+     * @return validated {@link GeneBankSearchBTreeArguments} object
+     */
 	private static GeneBankSearchBTreeArguments parseArgumentsAndHandleExceptions(String[] args) {
 		
 		GeneBankSearchBTreeArguments geneBankSearchBTreeArguments = null;
@@ -45,211 +66,58 @@ public class GeneBankSearchBTree
 		return geneBankSearchBTreeArguments;
 	}
 
+	 /**
+     * This method prints when invalid arguments are detected and will print an appropriately formatted usage example
+     * and exit the program.
+     *
+     * @param errorMessage error message provided by parse argument exception
+     * @param exitCode     exit code to be used when exiting the program
+     */
 	private static void printUsageAndExit(String errorMessage) {
 		
 		System.out.println(errorMessage);
-	    System.out.println("Usage: java -jar build/libs/GeneBankCreateBTree.jar --cache=<0|1>  --degree=<btree-degree> ");
+	    System.out.println("Usage: java -jar build/libs/GeneBankSearchBTree.jar --cache=<0|1>  --degree=<btree-degree> ");
 	    System.out.println("\t --btreefile=<b-tree-file> --length=<sequence-length> --queryfile=<query-file>");
 	    System.out.println("\t [--cachesize=<n>] [--debug=0|1]");
 	    System.exit(1);
 	    
 	}
 
+	 /**
+     * This method accepts the command line arguments, args, and attempts to parse the arguments.
+     * <p>
+     * Invalid argument entries will throw a ParseArgumentException to be handled in generating error message.
+     *
+     * @param args command line arguments provided by user.
+     * @throws ParseArgumentException exception issue encountered parsing arguments
+     * @return validate {@link GeneBankSearchBTreeArguments} object
+     */
 	private static GeneBankSearchBTreeArguments parseArguments(String[] args) throws ParseArgumentException {
 		try {
-            return parsePositionalArgs(args);  // try parsing as positional first; tests require it
-        } catch (ParseArgumentException e) {
-            // ignore; parse as named args
-        }
-
-        try {
-            return parseNamedArgs(args);  // try parsing as named arguments
-        } catch (ParseArgumentException e) {
-            throw new ParseArgumentException(e.getMessage());  // No fallback if this doesn't work
+            return GeneBankSearchBTreeArguments.fromStringArgs(args);  
+        } catch (IllegalArgumentException e) {
+           throw new ParseArgumentException(e.getMessage());
         }
 	}
 	
-	private static GeneBankSearchBTreeArguments parsePositionalArgs(String[] args) throws ParseArgumentException {
-		if (args.length < 5) {
-            throw new ParseArgumentException("Insufficient arguments. Required: cache degree btreefile length and queryfile");
-        }
-
-        try {
-            // Validate and parse 'cache'
-            int cacheValue = Integer.parseInt(args[0]);
-            if (cacheValue < 0 || cacheValue > 1) {
-                throw new IllegalArgumentException("Cache must be 0 or 1");
-            }
-
-            // Validate and parse 'degree'
-            int degreeValue = Integer.parseInt(args[1]);
-            if ((degreeValue < 2 || degreeValue > 31 )&& degreeValue != 0) {
-                throw new IllegalArgumentException("Degree must be 0 or be between 2 and 31");
-                //changed to not allow degree 1 to exist as degree 0 is only available to allow the program to select an optimal degree avoids exception from BTree. 
-            }
-
-            // Don't validate 'BTreefile' here; given tests can't handle it.
-            // It will be validated when it is opened
-            String btreeFileValue = args[2];
-
-            // Validate and parse 'length'
-            int lengthValue = Integer.parseInt(args[3]);
-            if (lengthValue < 1 || lengthValue > 31) {
-                throw new IllegalArgumentException("Sequence length must be between 1 and 31");
-            }
-            
-         // Don't validate 'queryfile' here; given tests can't handle it.
-            // It will be validated when it is opened
-            String queryFileValue = args[4];
-
-
-            // Validate and parse 'cachesize' if 'cache' is 1 if it is present
-            int cacheSize = 0;
-            if (args.length >= 5) {
-                cacheSize = Integer.parseInt(args[4]);
-                if (cacheValue == 1 && (cacheSize < 100 || cacheSize > 10000)) {
-                    throw new IllegalArgumentException("Cache size must be between 100 and 10000");
-                }
-            }
-
-            // Validate and parse 'debug' if present
-            int debugLevel = 0;
-            if (args.length == 6) {
-                debugLevel = Integer.parseInt(args[5]);
-                if (debugLevel < 0 || debugLevel > 1) {
-                    throw new IllegalArgumentException("Debug level must be 0 or 1");
-                }
-            }
-
-            return new GeneBankSearchBTreeArguments(
-                    cacheValue == 1,
-                    degreeValue,
-                    btreeFileValue,
-                    lengthValue,
-                    queryFileValue,
-                    cacheSize,
-                    debugLevel
-            );
-
-        } catch (NumberFormatException e) {
-            throw new ParseArgumentException("Invalid number format: " + e.getMessage());
-        } catch (IllegalArgumentException e) {
-            throw new ParseArgumentException("Argument validation error: " + e.getMessage());
-        }
-	}
-
-	private static GeneBankSearchBTreeArguments parseNamedArgs(String[] args) throws ParseArgumentException {
-		Options options = new Options();
-
-        // cache
-        Option cache = new Option("cache", true, "Use cache (1) or no cache (0)");
-        cache.setType(Integer.class);
-        cache.setRequired(true);
-        options.addOption(cache);
-
-        // degree
-        Option degree = new Option("degree", true, "Degree of the B-Tree");
-        degree.setType(Integer.class);
-        degree.setRequired(true);
-        options.addOption(degree);
-
-        // btreefile
-        Option btreefile = new Option("btreefile", true, "Path to the input btree file");
-        btreefile.setRequired(true);
-        options.addOption(btreefile);
-
-        // length
-        Option length = new Option("length", true, "Sequence length (between 1 and 31)");
-        length.setType(Integer.class);
-        length.setRequired(true);
-        options.addOption(length);
-        
-    	// queryfile
-        Option queryfile = new Option("queryfile", true, "Path to the input query file");
-        queryfile.setRequired(true);
-        options.addOption(queryfile);
-
-        // cachesize (optional)
-        Option cachesize = new Option("cachesize", true, "Cache size (between 100 and 10000)");
-        cachesize.setType(Integer.class);
-        options.addOption(cachesize);
-
-        // debug (optional)
-        Option debug = new Option("debug", true, "Debug level (0 or 1)");
-        debug.setType(Integer.class);
-        debug.setOptionalArg(true);
-        options.addOption(debug);
-
-        CommandLineParser parser = new DefaultParser();
-        CommandLine cmd;
-
-        try {
-            cmd = parser.parse(options, args);
-
-            // Validate 'cache'
-            int cacheValue = Integer.parseInt(cmd.getOptionValue("cache"));
-            if (cacheValue < 0 || cacheValue > 1) {
-                throw new IllegalArgumentException("Cache must be 0 or 1");
-            }
-            
-
-            // Validate 'degree'
-            int degreeValue = Integer.parseInt(cmd.getOptionValue("degree"));
-            if ((degreeValue < 2 || degreeValue > 31) && degreeValue != 0) {
-                throw new IllegalArgumentException("Degree must be 0 or be between 2 and 31");
-            }
-          //changed to not allow degree 1 to exist as degree 0 is only available to allow the program to select an optimal degree avoids exception from BTree. 
-
-            // Don't validate 'btreefile' here; given tests can't handle it.
-            // It will be validated when it is opened
-            String btreefileValue = cmd.getOptionValue("btreefile");
-
-            // Validate 'length'
-            int lengthValue = Integer.parseInt(cmd.getOptionValue("length"));
-            if (lengthValue < 1 || lengthValue > 31) {
-                throw new IllegalArgumentException("Sequence length must be between 1 and 31");
-            }
-            
-            // Don't validate 'queryfile' here; given tests can't handle it.
-            // It will be validated when it is opened
-            String queryfileValue = cmd.getOptionValue("queryfile");
-
-            // Validate 'cachesize' if 'cache' is 1
-            if ("1".equals(cmd.getOptionValue("cache"))) {
-                int cacheSizeValue = Integer.parseInt(cmd.getOptionValue("cachesize"));
-                if (cacheSizeValue < 100 || cacheSizeValue > 10000) {
-                    throw new IllegalArgumentException("Cache size must be between 100 and 10000");
-                }
-            }
-
-            // Validate 'debug' if present
-            if (cmd.hasOption("debug")) {
-                int debugValue = Integer.parseInt(cmd.getOptionValue("debug"));
-                if (debugValue < 0 || debugValue > 1) {
-                    throw new IllegalArgumentException("Debug level must be 0 or 1");
-                }
-            }
-
-        } catch (Exception e) {
-            throw new ParseArgumentException(e.getMessage());
-        }
-
-        return new GeneBankSearchBTreeArguments(
-                "1".equals(cmd.getOptionValue("cache")),
-                Integer.parseInt(cmd.getOptionValue("degree")),
-                cmd.getOptionValue("btreefile"),
-                Integer.parseInt(cmd.getOptionValue("length")),
-                cmd.getOptionValue("queryfile"),
-                cmd.hasOption("cachesize") ? Integer.parseInt(cmd.getOptionValue("cachesize")) : 0,
-                cmd.hasOption("debug") ? Integer.parseInt(cmd.getOptionValue("debug")) : 0
-        );
-	}
-
+	
+	/**
+	 * This method will take in the command line arguments and use them to search the provided BTree for the subsequences listed in the 
+	 * provided query file. 
+	 * The results of the search will be output to the standard output stream. 
+	 * 
+	 * Debug level 0 outputs a list of subsequences and their frequency count
+	 * Debug level 1 will add a separate line to declare what subsequence is being searched and if it was found or not.  
+	 * 
+	 * @param args				Command Line arguments provided in the program call
+	 * @throws BTreeException	If there is an error locating the BTree File 
+	 * @throws IOException		if there is an error encountered opening or reading the query file. 
+	 */
 	private static void searchBTree(GeneBankSearchBTreeArguments args) throws BTreeException, IOException {
 		String btreeFileName = args.getBtreeFileName();
 		Path filePath = Paths.get(btreeFileName);
 
-		// check this file exists
+		// double-check this file exists
 		if(!filePath.toFile().exists()) {
 			throw new BTreeException("File does not exist or was not located");
 		}
