@@ -6,7 +6,6 @@ import java.util.Scanner;
 import java.lang.String;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.sql.SQLException;
 
 import cs321.btree.BTree;
 import cs321.btree.BTreeException;
@@ -27,33 +26,32 @@ import cs321.create.SequenceUtils;
 public class GeneBankSearchBTree
 {
 
-	 /**
-     * The entry point for the GeneBankSearchBTree program.
-     * <p>
-     * This method will parse the command line arguments and then search a BTree file based on the provided Query file.
-     * Output will be generated based on the selected debug level.
-     *
-     * @param args command line arguments provided with program call
-     * @throws BTreeException if there is an error creating the BTree
-     * @throws IOException    if there is an error reading the gbk file or writing the BTree file
-     * @throws SQLException   if there is an error creating/writing to a SQLite database
-     */
-    public static void main(String[] args) throws Exception
-    {
-        //System.out.println("Hello world from cs321.search.GeneBankSearchBTree.main");
-        GeneBankSearchBTreeArguments geneBankSearchBTreearguments = parseArgumentsAndHandleExceptions(args);
-        searchBTree(geneBankSearchBTreearguments);
-    }
+	/**
+	 * The entry point for the GeneBankSearchBTree program.
+	 * <p>
+	 * This method will parse the command line arguments and then search a BTree file based on the provided Query file.
+	 * Output will be generated based on the selected debug level.
+	 *
+	 * @param args command line arguments provided with program call
+	 * @throws BTreeException if there is an error creating the BTree
+	 * @throws IOException    if there is an error reading the gbk file or writing the BTree file
+	 */
+	public static void main(String[] args) throws Exception
+	{
+		//System.out.println("Hello world from cs321.search.GeneBankSearchBTree.main");
+		GeneBankSearchBTreeArguments geneBankSearchBTreearguments = parseArgumentsAndHandleExceptions(args);
+		searchBTree(geneBankSearchBTreearguments);
+	}
 
-    /**
-     * This method takes in the command line arguments and will parse the arguments to return an object containing the
-     * appropriate arguments or print a usage method and exit the program
-     *
-     * @param args command line arguments provided with program call
-     * @return validated {@link GeneBankSearchBTreeArguments} object
-     */
+	/**
+	 * This method takes in the command line arguments and will parse the arguments to return an object containing the
+	 * appropriate arguments or print a usage method and exit the program
+	 *
+	 * @param args command line arguments provided with program call
+	 * @return validated {@link GeneBankSearchBTreeArguments} object
+	 */
 	private static GeneBankSearchBTreeArguments parseArgumentsAndHandleExceptions(String[] args) {
-		
+
 		GeneBankSearchBTreeArguments geneBankSearchBTreeArguments = null;
 		try
 		{
@@ -62,45 +60,45 @@ public class GeneBankSearchBTree
 		catch (ParseArgumentException e) {
 			printUsageAndExit(e.getMessage());
 		}
-		
+
 		return geneBankSearchBTreeArguments;
 	}
 
-	 /**
-     * This method prints when invalid arguments are detected and will print an appropriately formatted usage example
-     * and exit the program.
-     *
-     * @param errorMessage error message provided by parse argument exception
-     * @param exitCode     exit code to be used when exiting the program
-     */
+	/**
+	 * This method prints when invalid arguments are detected and will print an appropriately formatted usage example
+	 * and exit the program.
+	 *
+	 * @param errorMessage error message provided by parse argument exception
+	 * @param exitCode     exit code to be used when exiting the program
+	 */
 	private static void printUsageAndExit(String errorMessage) {
-		
+
 		System.out.println(errorMessage);
-	    System.out.println("Usage: java -jar build/libs/GeneBankSearchBTree.jar --cache=<0|1>  --degree=<btree-degree> ");
-	    System.out.println("\t --btreefile=<b-tree-file> --length=<sequence-length> --queryfile=<query-file>");
-	    System.out.println("\t [--cachesize=<n>] [--debug=0|1]");
-	    System.exit(1);
-	    
+		System.out.println("Usage: java -jar build/libs/GeneBankSearchBTree.jar --cache=<0|1>  --degree=<btree-degree> ");
+		System.out.println("\t --btreefile=<b-tree-file> --length=<sequence-length> --queryfile=<query-file>");
+		System.out.println("\t [--cachesize=<n>] [--debug=0|1]");
+		System.exit(1);
+
 	}
 
-	 /**
-     * This method accepts the command line arguments, args, and attempts to parse the arguments.
-     * <p>
-     * Invalid argument entries will throw a ParseArgumentException to be handled in generating error message.
-     *
-     * @param args command line arguments provided by user.
-     * @throws ParseArgumentException exception issue encountered parsing arguments
-     * @return validate {@link GeneBankSearchBTreeArguments} object
-     */
+	/**
+	 * This method accepts the command line arguments, args, and attempts to parse the arguments.
+	 * <p>
+	 * Invalid argument entries will throw a ParseArgumentException to be handled in generating error message.
+	 *
+	 * @param args command line arguments provided by user.
+	 * @throws ParseArgumentException exception issue encountered parsing arguments
+	 * @return validate {@link GeneBankSearchBTreeArguments} object
+	 */
 	private static GeneBankSearchBTreeArguments parseArguments(String[] args) throws ParseArgumentException {
 		try {
-            return GeneBankSearchBTreeArguments.fromStringArgs(args);  
-        } catch (IllegalArgumentException e) {
-           throw new ParseArgumentException(e.getMessage());
-        }
+			return GeneBankSearchBTreeArguments.fromStringArgs(args);  
+		} catch (IllegalArgumentException e) {
+			throw new ParseArgumentException(e.getMessage());
+		}
 	}
-	
-	
+
+
 	/**
 	 * This method will take in the command line arguments and use them to search the provided BTree for the subsequences listed in the 
 	 * provided query file. 
@@ -130,32 +128,52 @@ public class GeneBankSearchBTree
 		Scanner input = new Scanner(new FileReader(args.getQueryFileName()));//open scanner to read query file
 		String query; 
 		long queryLong;
+		long queryLongComplement;
+		TreeObject result;
+		TreeObject complementResult;
 		System.out.println("Search Results: ");
 
 		while (input.hasNext()) { // use while loop to convert query string to long and search BTree until each subsequence is searched
 			query = input.nextLine().trim(); // initiate next search string
-			if (args.getDebugLevel()>= 1) {
-				System.out.println("Searching for subsequence: " + query);
-			}
+			//convert to long to search BTree
 			queryLong = SequenceUtils.dnaStringToLong(query);
-			TreeObject result = searchTree.search(queryLong);
-			if (result != null) {
-				if (args.getDebugLevel()>= 1) {
-					System.out.println(query + " was found!");
-				}
-				System.out.println(query + " " + result.getCount());
-			}else {
-				if (args.getDebugLevel()>= 1) {
-					System.out.println(query + " was not found!");
-				}
-				System.out.println(query + " 0");
+			//find complement to search that as well
+			queryLongComplement = SequenceUtils.getComplement(queryLong, query.length());
+			result = searchTree.search(queryLong);
+			complementResult = searchTree.search(queryLongComplement);
+
+			if (args.getDebugLevel() == 0) {
+				printResult(query, result, complementResult);
+			} else {
+				debugLevel1(query, result, complementResult);
 			}
 		}
 		input.close();		
 
 	}
 
+	private static void printResult(String query, TreeObject result, TreeObject complementResult) {
+		System.out.println(query + " " + (result.getCount() + complementResult.getCount()));
+	}
 
-
+	private static void debugLevel1(String query, TreeObject result, TreeObject complementResult) {
+		// print results for direct search
+		System.out.println("Searching for subsequence: " + query);
+		if (result != null) {
+			System.out.println(query + " was found!");
+			System.out.println(query + " " + result.getCount());
+		}else {
+			System.out.println(query + " was not found!");
+		}
+		// print detail and results for complement search 
+		String complementQuery = SequenceUtils.longToDnaString(complementResult.getSubsequence(),query.length());
+		System.out.println("Searching for subsequence complement: " + complementQuery);
+		if (complementResult != null) {
+			System.out.println(complementQuery + " was found!");
+			System.out.println(complementQuery + " " + complementResult.getCount());
+		}else {
+			System.out.println(complementQuery + " was not found!");
+		}
+	}
 }
 

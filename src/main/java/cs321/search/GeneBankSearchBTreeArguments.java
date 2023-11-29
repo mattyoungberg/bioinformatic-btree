@@ -9,9 +9,24 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import cs321.create.GeneBankCreateBTree;
-import cs321.create.GeneBankCreateBTreeArguments;
 
+/**
+ * A class to represent the arguments to the GeneBankSearchBTree program.
+ * <p>
+ * Create a new instance via the factory method {@link #fromStringArgs(String[])}. This will parse the string array of
+ * arguments from the command line, run validation, and return a new {@link GeneBankSearchBTreeArguments} object.
+ * <p>
+ * The usage, per the project spec, is as follows:
+ * <p>
+ * <pre>
+ * java java -jar build/libs/GeneBankSearchBTree.jar --cache=<0|1>  --degree=<btree-degree>
+ *  --btreefile=<b-tree-file> --length=<sequence-length> --queryfile=<query-file>
+ *  [--cachesize=<n>] [--debug=0|1]
+ * </pre>
+ *
+ * @author Derek Caplinger
+ * @author Matt Youngberg
+ */
 public class GeneBankSearchBTreeArguments
 {
 	
@@ -56,7 +71,7 @@ public class GeneBankSearchBTreeArguments
 	private final int debugLevel;
 
 	/**
-     * Create a new {@link GeneBankCreateBTreeArguments} object.
+     * Create a new {@link GeneBankSearchBTreeArguments} object.
      *
      * @param useCache              whether to use a cache. 0 or 1
      * @param degree                the degree of the BTree. 0 or >=2
@@ -203,7 +218,7 @@ public class GeneBankSearchBTreeArguments
      * to be parsed and validated 
      *
      * @param args  the string array of arguments
-     * @return      a GeneBankCreateBTreeArguments object
+     * @return      a GeneBankSearchBTreeArguments object
      */
     public static GeneBankSearchBTreeArguments fromStringArgs(String[] args) {
         Map<String, String> argMap = new HashMap<>();
