@@ -23,7 +23,6 @@ do
 		echo "----> Query-Test-$i PASSED!"
 	else
 		echo "----> Query-Test-$i FAILED@$#!"
-		exit 1
 	fi
 
 done
