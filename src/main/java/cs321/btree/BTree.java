@@ -69,6 +69,13 @@ public class BTree implements BTreeInterface, Iterable<TreeObject> {
      */
     private final int METADATA_SIZE = Long.BYTES + Integer.BYTES * 3;  // t + root position + count + height
 
+	/**
+	 * The {@link RandomAccessFile} that produces the {@link FileChannel} that the {@link BTree} is stored in.
+	 * <p>
+	 * Held as a field to close when {@link BTree#finishUp()} is called.
+	 */
+	private final RandomAccessFile randomAccessFile;
+
     /**
      * The {@link FileChannel} that the {@link BTree} is stored in.
      */
@@ -131,8 +138,9 @@ public class BTree implements BTreeInterface, Iterable<TreeObject> {
 		boolean exists = filePath.toFile().exists();
 		if (exists) {
 			// Open the file for processing, get FileChannel
-			try (RandomAccessFile file = new RandomAccessFile(fileName, "rw")) {
-				this.fileChannel = file.getChannel();
+			try {
+				this.randomAccessFile = new RandomAccessFile(fileName, "rw");
+				this.fileChannel = this.randomAccessFile.getChannel();
 			} catch (IOException e) {
 				throw new BTreeException(e.getMessage());  // Given tests only take BTreeException
 			}
@@ -156,7 +164,8 @@ public class BTree implements BTreeInterface, Iterable<TreeObject> {
 
 			// Open the file for processing, get FileChannel
 			try {
-				this.fileChannel = new RandomAccessFile(fileName, "rw").getChannel();
+				this.randomAccessFile = new RandomAccessFile(fileName, "rw");
+				this.fileChannel = this.randomAccessFile.getChannel();
 			} catch (FileNotFoundException e) {				// Given test `testBTreeCreate` only expects BTreeException,
 				throw new BTreeException(e.getMessage());  	// so we cast here, instead of raising an I/O based one.
 			}
@@ -202,7 +211,8 @@ public class BTree implements BTreeInterface, Iterable<TreeObject> {
 
 		// Open the file for processing, get FileChannel
 		try {
-			this.fileChannel = new RandomAccessFile(fileName, "rw").getChannel();
+			this.randomAccessFile = new RandomAccessFile(fileName, "rw");
+			this.fileChannel = this.randomAccessFile.getChannel();
 		} catch (FileNotFoundException e) {				// Given test `testBTreeCreateDegree` only expects
 			throw new BTreeException(e.getMessage());  	// BTreeException, so we cast here, instead of raising an I/O.
 		}
@@ -264,7 +274,8 @@ public class BTree implements BTreeInterface, Iterable<TreeObject> {
 
 		// Open the file for processing, get FileChannel
 		try {
-			this.fileChannel = new RandomAccessFile(fileName, "rw").getChannel();
+			this.randomAccessFile = new RandomAccessFile(fileName, "rw");
+			this.fileChannel = this.randomAccessFile.getChannel();
 		} catch (FileNotFoundException e) {				// Given test `testBTreeCreateDegree` only expects
 			throw new BTreeException(e.getMessage());  	// BTreeException, so we cast here, instead of raising an I/O.
 		}
@@ -402,6 +413,7 @@ public class BTree implements BTreeInterface, Iterable<TreeObject> {
 		fileChannel.force(true);
 		BTreeSQLiteDBBuilder.create(this, filePath);
 		fileChannel.close();
+		randomAccessFile.close();
 	}
 
 	/**

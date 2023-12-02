@@ -14,8 +14,8 @@ import java.util.regex.Pattern;
  * The usage, per the project spec, is as follows:
  * <p>
  * <pre>
- * java -jar build/libs/GeneBankCreateBTree.jar --cache=<0|1>  --degree=<btree-degree>
- *  --gbkfile=<gbk-file> --length=<sequence-length> [--cachesize=<n>] [--debug=0|1]
+ * java -jar build/libs/GeneBankCreateBTree.jar --cache=&lt;0|1&gt;  --degree=&lt;btree-degree&gt;
+ *  --gbkfile=&lt;gbk-file&gt; --length=&lt;sequence-length&gt; [--cachesize=&lt;n&gt;] [--debug=&lt;0|1&gt;]
  * </pre>
  *
  * @author Derek Caplinger
@@ -143,7 +143,7 @@ public class GeneBankCreateBTreeArguments {
      *
      * @return a boolean that specifies whether a cache should be used.
      */
-    public boolean getUseCache() {
+    public boolean useCache() {
         return useCache;
     }
 
@@ -183,7 +183,7 @@ public class GeneBankCreateBTreeArguments {
     /**
      * Get the cache size.
      * <p>
-     * Will be 0 if the object would return false from {@link #getUseCache()}.
+     * Will be 0 if the object would return false from {@link #useCache()}.
      *
      * @return  the cache size
      */
