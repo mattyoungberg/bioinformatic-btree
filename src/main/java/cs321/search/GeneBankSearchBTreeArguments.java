@@ -19,16 +19,15 @@ import java.util.regex.Pattern;
  * The usage, per the project spec, is as follows:
  * <p>
  * <pre>
- * java java -jar build/libs/GeneBankSearchBTree.jar --cache=<0|1>  --degree=<btree-degree>
- *  --btreefile=<b-tree-file> --length=<sequence-length> --queryfile=<query-file>
- *  [--cachesize=<n>] [--debug=0|1]
+ * java java -jar build/libs/GeneBankSearchBTree.jar --cache=&lt;0|1&gt;  --degree=&lt;btree-degree&gt;
+ *  --btreefile=&lt;b-tree-file&gt; --length=&lt;sequence-length&gt; --queryfile=&lt;query-file&gt;
+ *  [--cachesize=&lt;n&gt;] [--debug=&lt;0|1&gt;]
  * </pre>
  *
  * @author Derek Caplinger
  * @author Matt Youngberg
  */
-public class GeneBankSearchBTreeArguments
-{
+public class GeneBankSearchBTreeArguments {
 	
 	 /**
      * A pattern that string arguments must match.
@@ -81,8 +80,7 @@ public class GeneBankSearchBTreeArguments
      * @param cacheSize             the cache size. 100-10,000
      * @param debugLevel            the debug level. 0 or 1
      */
-    public GeneBankSearchBTreeArguments(boolean useCache, int degree, String btreeFileName, int subsequenceLength, String queryFileName, int cacheSize, int debugLevel)
-    {
+    public GeneBankSearchBTreeArguments(boolean useCache, int degree, String btreeFileName, int subsequenceLength, String queryFileName, int cacheSize, int debugLevel) {
         this.useCache = useCache;
         this.degree = degree;
         this.btreeFileName = btreeFileName;
@@ -92,74 +90,64 @@ public class GeneBankSearchBTreeArguments
         this.debugLevel = debugLevel;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public boolean equals(Object obj)
-    {
-        //this method was generated using an IDE
-        if (this == obj)
-        {
+    public boolean equals(Object obj) {
+        if (this == obj) {
             return true;
         }
-        if (obj == null)
-        {
+        if (obj == null) {
             return false;
         }
-        if (getClass() != obj.getClass())
-        {
+        if (getClass() != obj.getClass()) {
             return false;
         }
+
         GeneBankSearchBTreeArguments other = (GeneBankSearchBTreeArguments) obj;
-        if (cacheSize != other.cacheSize)
-        {
+
+        if (cacheSize != other.cacheSize) {
             return false;
         }
-        if (getDebugLevel() != other.getDebugLevel())
-        {
+        if (getDebugLevel() != other.getDebugLevel()) {
             return false;
         }
-        if (getDegree() != other.getDegree())
-        {
+        if (getDegree() != other.getDegree()) {
             return false;
         }
-        if (getBtreeFileName() == null)
-        {
-            if (other.getBtreeFileName() != null)
-            {
+        if (getBtreeFileName() == null) {
+            if (other.getBtreeFileName() != null) {
+                return false;
+            }
+        } else {
+            if (!getBtreeFileName().equals(other.getBtreeFileName())) {
                 return false;
             }
         }
-        else
-        {
-            if (!getBtreeFileName().equals(other.getBtreeFileName()))
-            {
-                return false;
-            }
-        }
-        if (subsequenceLength != other.subsequenceLength)
-        {
+        if (subsequenceLength != other.subsequenceLength) {
             return false;
         }
-        if (getQueryFileName() == null)
-        {
-            if (other.getQueryFileName() != null)
-            {
+        if (getQueryFileName() == null) {
+            if (other.getQueryFileName() != null) {
                 return false;
             }
         }
-        else
-        {
-            if (!getQueryFileName().equals(other.getQueryFileName()))
-            {
+        else {
+            if (!getQueryFileName().equals(other.getQueryFileName())) {
                 return false;
             }
         }
-        if (useCache != other.useCache)
-        {
+        if (useCache != other.useCache) {
             return false;
         }
+
         return true;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String toString()
     {
@@ -175,40 +163,58 @@ public class GeneBankSearchBTreeArguments
                 '}';
     }
 
-	
-	/**
+
+    /**
+     * Get whether to use a cache.
+     *
+     * @return whether to use a cache
+     */
+    public boolean useCache() {
+        return useCache;
+    }
+
+    /**
+     * @return the degree
+     */
+    public int getDegree() {
+        return degree;
+    }
+
+    /**
+     * @return the btreeFileName
+     */
+    public String getBtreeFileName() {
+        return btreeFileName;
+    }
+
+    /**
 	 * @return the subsequenceLength
 	 */
 	public int getSubsequenceLength() {
 		return subsequenceLength;
 	}
 
-	/**
-	 * @return the degree
-	 */
-	public int getDegree() {
-		return degree;
-	}
+    /**
+     * @return the queryFileName
+     */
+    public String getQueryFileName() {
+        return queryFileName;
+    }
 
-	/**
+    /**
+     * Get the cache size.
+     * <p>
+     * Will be 0 if the object would return false from {@link #useCache()}.
+     */
+    public int getCacheSize() {
+        return cacheSize;
+    }
+
+    /**
 	 * @return the debugLevel
 	 */
 	public int getDebugLevel() {
 		return debugLevel;
-	}
-
-	/**
-	 * @return the btreeFileName
-	 */
-	public String getBtreeFileName() {
-		return btreeFileName;
-	}
-
-	/**
-	 * @return the queryFileName
-	 */
-	public String getQueryFileName() {
-		return queryFileName;
 	}
 	
 	 /**
