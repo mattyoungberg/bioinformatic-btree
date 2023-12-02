@@ -96,7 +96,7 @@ task createJarGeneBankSearchDatabase(type: Jar) {
     with jar
 }
 
-task testGeneBankCreateBTree {
+task createBTreesTest0 {
     dependsOn createJarGeneBankCreateBTree
     doLast {
         // Run create-btrees.sh script on test0.gbk
@@ -106,36 +106,36 @@ task testGeneBankCreateBTree {
         if (resultCreateBtreesTest0.exitValue != 0) {
             throw new GradleException("create-btrees.sh failed")
         }
-
-        // Run check-dumpfiles.sh script on test0.gbk
-        def resultCheckDumpfilesTest0 = exec {
-            commandLine 'bash', './check-dumpfiles.sh', 'test0.gbk'
-        }
-        if (resultCheckDumpfilesTest0.exitValue != 0) {
-            throw new GradleException("check-dumpfiles.sh failed")
-        }
-//        Not worth the assurance to run test5.gbk due to runtime
-//
-//        // Run create-btrees.sh script on test5.gbk
-//        def resultCreateBtreesTest5 = exec {
-//            commandLine 'bash', './create-btrees.sh', 'test5.gbk'
-//        }
-//        if (resultCreateBtreesTest5.exitValue != 0) {
-//            throw new GradleException("create-btrees.sh failed")
-//        }
-//
-//        // Run check-dumpfiles.sh script on test5.gbk
-//        def resultCheckDumpfilesTest5 = exec {
-//            commandLine 'bash', './check-dumpfiles.sh', 'test5.gbk'
-//        }
-//        if (resultCheckDumpfilesTest5.exitValue != 0) {
-//            throw new GradleException("check-dumpfiles.sh failed")
-//        }
     }
 }
 
-test.finalizedBy(testGeneBankCreateBTree)
+task testGeneBankCreateBTreeTest0 {
+    dependsOn createBTreesTest0
 
+    // Run check-dumpfiles.sh script on test0.gbk
+    def resultCheckDumpfilesTest0 = exec {
+        commandLine 'bash', './check-dumpfiles.sh', 'test0.gbk'
+    }
+    if (resultCheckDumpfilesTest0.exitValue != 0) {
+        throw new GradleException("check-dumpfiles.sh failed")
+    }
+}
+
+test.finalizedBy(testGeneBankCreateBTreeTest0)
+
+task testGeneBankSearchBTreeTest0 {
+    dependsOn createBTreesTest0
+
+    // Run search-btrees.sh script on test0.gbk
+    def resultSearchBtreesTest0 = exec {
+        commandLine 'bash', './check-queries.sh', 'test0.gbk'
+    }
+    if (resultSearchBtreesTest0.exitValue != 0) {
+        throw new GradleException("search-btrees.sh failed")
+    }
+}
+
+test.finalizedBy(testGeneBankSearchBTreeTest0)
 
 tasks.createJarGeneBankCreateBTree.finalizedBy('printInstructionsToRunJarGeneBankCreateBTree')
 
