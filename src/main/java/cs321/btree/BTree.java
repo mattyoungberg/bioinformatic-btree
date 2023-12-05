@@ -121,7 +121,7 @@ public class BTree implements BTreeInterface, Iterable<TreeObject> {
 	 * The next position in the {@link BTree#fileChannel} to which you can write a new {@link BTreeNode}.
 	 * <p>
 	 * This is purposely decoupled from {@link FileChannel#size} method because the cache may write some nodes to disk
-	 * before others, regardless of whe the {@link BTree} creates them for use.
+	 * before others, regardless of when the {@link BTree} creates them for use.
 	 */
 	private long nextPosition = METADATA_SIZE;
 
