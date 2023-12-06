@@ -263,48 +263,7 @@ public class BTree implements BTreeInterface, Iterable<TreeObject> {
 	 * @param cacheCapacity		the capacity of the cache
 	 */
 	public BTree(int degree, String fileName, int cacheCapacity) throws BTreeException {
-		if (cacheCapacity <= 0) {
-			throw new IllegalArgumentException("Cache capacity must be greater than 0");
-		}
-
-		// Duplicated code from BTree(int, String) constructor
-		this.filePath = Paths.get(fileName);
-		if (degree == 0) {
-			this.t = calculateOptimalT();
-		}  else if (degree == 1) {
-			throw new IllegalArgumentException("Degree must be greater than 1");
-		} else {
-			this.t = degree;
-		}
-		this.rootPosition = getNextPositionAndIncrement();  // Manually set before fileChannel is initialized
-		this.keyCount = 0;
-		this.height = 0;
-
-		// Open the file for processing, get FileChannel
-		try {
-			this.randomAccessFile = new RandomAccessFile(fileName, "rw");
-			this.fileChannel = this.randomAccessFile.getChannel();
-		} catch (FileNotFoundException e) {				// Given test `testBTreeCreateDegree` only expects
-			throw new BTreeException(e.getMessage());  	// BTreeException, so we cast here, instead of raising an I/O.
-		}
-
-		// Write metadata to file
-		this.metadataBuffer = ByteBuffer.allocateDirect(METADATA_SIZE);
-		try {
-			writeMetaData();
-		} catch (IOException e) {
-			throw new BTreeException(e.getMessage());
-		}
-
-		// Allocate nodeBuffer, write root node
-		this.nodeBuffer = ByteBuffer.allocateDirect(BTreeNode.getByteSize(t));
-		try {
-			createBTree();  // See page 506 of textbook, B-TREE-CREATE(T)
-		} catch (IOException e) {
-			throw new BTreeException(e.getMessage());  // Given test `testBTreeCreateDegree` only take BTreeException
-		}
-
-		// Cache setup
+		this(degree, fileName);  // Call other constructor to set up BTree
 		this.cache = createCache(cacheCapacity);
 	}
 
@@ -316,62 +275,7 @@ public class BTree implements BTreeInterface, Iterable<TreeObject> {
 	 * @param cacheCapacity	the capacity of the cache
 	 */
 	public BTree(String fileName, int cacheCapacity) throws BTreeException {
-		// Duplicated code from BTree(String) constructor
-		this.filePath = Paths.get(fileName);
-		boolean exists = filePath.toFile().exists();
-		if (exists) {
-			// Open the file for processing, get FileChannel
-			try {
-				this.randomAccessFile = new RandomAccessFile(fileName, "rw");
-				this.fileChannel = this.randomAccessFile.getChannel();
-				this.nextPosition = this.fileChannel.size();  // Set nextPosition to end of file
-			} catch (IOException e) {
-				throw new BTreeException(e.getMessage());  // Given tests only take BTreeException
-			}
-
-			// Read metadata in, prepare for reading root
-			this.metadataBuffer = ByteBuffer.allocateDirect(METADATA_SIZE);
-			readMetaData();  // sets t, rootAddress, keyCount, height
-
-			// Allocate nodeBuffer, set root node
-			this.nodeBuffer = ByteBuffer.allocateDirect(BTreeNode.getByteSize(t));
-			try {
-				this.root = diskRead(rootPosition);
-			} catch (IOException e) {
-				throw new BTreeException(e.getMessage());  // Given tests only take BTreeException
-			}
-		} else {  // Copied code from other constructor; not DRY, but we can't call the other constructor
-			this.t = calculateOptimalT();
-			this.rootPosition = getNextPositionAndIncrement();  // Manually set before fileChannel is initialized
-			this.keyCount = 0;
-			this.height = 0;
-
-			// Open the file for processing, get FileChannel
-			try {
-				this.randomAccessFile = new RandomAccessFile(fileName, "rw");
-				this.fileChannel = this.randomAccessFile.getChannel();
-			} catch (FileNotFoundException e) {				// Given test `testBTreeCreate` only expects BTreeException,
-				throw new BTreeException(e.getMessage());  	// so we cast here, instead of raising an I/O based one.
-			}
-
-			// Write metadata to file
-			this.metadataBuffer = ByteBuffer.allocateDirect(METADATA_SIZE);
-			try {
-				writeMetaData();
-			} catch (IOException e) {
-				throw new BTreeException(e.getMessage());
-			}
-
-			// Allocate nodeBuffer, write root node
-			this.nodeBuffer = ByteBuffer.allocateDirect(BTreeNode.getByteSize(t));
-			try {
-				createBTree();  // See page 506 of textbook, B-TREE-CREATE(T)
-			} catch (IOException e) {
-				throw new BTreeException(e.getMessage());  // Given test `testBTreeCreate` only take BTreeException
-			}
-		}
-
-		// Cache setup
+		this(fileName);  // Call other constructor to set up BTree
 		this.cache = createCache(cacheCapacity);
 	}
 
