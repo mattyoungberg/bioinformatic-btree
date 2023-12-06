@@ -119,7 +119,12 @@ public class GeneBankSearchBTree {
 		}
 
 		// open BTree file to begin reading BTree
-		BTree searchTree = new BTree(btreeFileName);  // TODO add cache constructor
+		BTree searchTree;
+		if (args.useCache()) {
+			searchTree = new BTree(args.getBtreeFileName(), args.getCacheSize());
+		} else {
+			searchTree = new BTree(args.getBtreeFileName());
+		}
 
 		// open scanner to read query file in
 		Scanner input = new Scanner(new FileReader(args.getQueryFileName()));  // open scanner to read query file

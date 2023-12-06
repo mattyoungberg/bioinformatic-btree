@@ -305,21 +305,76 @@ public class BTree implements BTreeInterface, Iterable<TreeObject> {
 		}
 
 		// Cache setup
-		this.cache = new LinkedHashMap<Long, BTreeNode>(cacheCapacity, 1.0f, true) {
-			@Override
-			protected boolean removeEldestEntry(java.util.Map.Entry<Long, BTreeNode> eldest) {
-				boolean willRemove = size() > cacheCapacity;
-				if (willRemove) {
-					try {
-						forceDiskWrite(eldest.getValue(), eldest.getKey());  // Force disk write before eviction
-					} catch (IOException e) {
-						throw new RuntimeException(e);  // Coerce to a RuntimeException to meet interface
-					}
-				}
-				return willRemove;
-			}
-		};
+		this.cache = createCache(cacheCapacity);
 	}
+
+	/**
+	 * Load an existing BTree that already exists on disk, or, if not, create one with the optimal degree. Also enables
+	 * a cache of the given capacity.
+	 *
+	 * @param fileName		file name that stores the {@link BTree} on disk
+	 * @param cacheCapacity	the capacity of the cache
+	 */
+	public BTree(String fileName, int cacheCapacity) throws BTreeException {
+		// Duplicated code from BTree(String) constructor
+		this.filePath = Paths.get(fileName);
+		boolean exists = filePath.toFile().exists();
+		if (exists) {
+			// Open the file for processing, get FileChannel
+			try {
+				this.randomAccessFile = new RandomAccessFile(fileName, "rw");
+				this.fileChannel = this.randomAccessFile.getChannel();
+				this.nextPosition = this.fileChannel.size();  // Set nextPosition to end of file
+			} catch (IOException e) {
+				throw new BTreeException(e.getMessage());  // Given tests only take BTreeException
+			}
+
+			// Read metadata in, prepare for reading root
+			this.metadataBuffer = ByteBuffer.allocateDirect(METADATA_SIZE);
+			readMetaData();  // sets t, rootAddress, keyCount, height
+
+			// Allocate nodeBuffer, set root node
+			this.nodeBuffer = ByteBuffer.allocateDirect(BTreeNode.getByteSize(t));
+			try {
+				this.root = diskRead(rootPosition);
+			} catch (IOException e) {
+				throw new BTreeException(e.getMessage());  // Given tests only take BTreeException
+			}
+		} else {  // Copied code from other constructor; not DRY, but we can't call the other constructor
+			this.t = calculateOptimalT();
+			this.rootPosition = getNextPositionAndIncrement();  // Manually set before fileChannel is initialized
+			this.keyCount = 0;
+			this.height = 0;
+
+			// Open the file for processing, get FileChannel
+			try {
+				this.randomAccessFile = new RandomAccessFile(fileName, "rw");
+				this.fileChannel = this.randomAccessFile.getChannel();
+			} catch (FileNotFoundException e) {				// Given test `testBTreeCreate` only expects BTreeException,
+				throw new BTreeException(e.getMessage());  	// so we cast here, instead of raising an I/O based one.
+			}
+
+			// Write metadata to file
+			this.metadataBuffer = ByteBuffer.allocateDirect(METADATA_SIZE);
+			try {
+				writeMetaData();
+			} catch (IOException e) {
+				throw new BTreeException(e.getMessage());
+			}
+
+			// Allocate nodeBuffer, write root node
+			this.nodeBuffer = ByteBuffer.allocateDirect(BTreeNode.getByteSize(t));
+			try {
+				createBTree();  // See page 506 of textbook, B-TREE-CREATE(T)
+			} catch (IOException e) {
+				throw new BTreeException(e.getMessage());  // Given test `testBTreeCreate` only take BTreeException
+			}
+		}
+
+		// Cache setup
+		this.cache = createCache(cacheCapacity);
+	}
+
 
 	/**
 	 * {@inheritDoc}
@@ -817,5 +872,26 @@ public class BTree implements BTreeInterface, Iterable<TreeObject> {
 		for (java.util.Map.Entry<Long, BTreeNode> entry : this.cache.entrySet()) {
 			forceDiskWrite(entry.getValue(), entry.getKey());
 		}
+	}
+
+	/**
+	 * Create a {@link LinkedHashMap} for a cache with a properly overwritten {@link LinkedHashMap#removeEldestEntry}
+	 * method.
+	 */
+	private LinkedHashMap<Long, BTreeNode> createCache(int cacheCapacity) {
+		return new LinkedHashMap<Long, BTreeNode>(cacheCapacity, 1.0f, true) {
+			@Override
+			protected boolean removeEldestEntry(java.util.Map.Entry<Long, BTreeNode> eldest) {
+				boolean willRemove = size() > cacheCapacity;
+				if (willRemove) {
+					try {
+						forceDiskWrite(eldest.getValue(), eldest.getKey());  // Force disk write before eviction
+					} catch (IOException e) {
+						throw new RuntimeException(e);  // Coerce to a RuntimeException to meet interface
+					}
+				}
+				return willRemove;
+			}
+		};
 	}
 }
