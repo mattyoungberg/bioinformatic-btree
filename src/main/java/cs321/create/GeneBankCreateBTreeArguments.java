@@ -185,7 +185,7 @@ public class GeneBankCreateBTreeArguments {
      * <p>
      * Will be 0 if the object would return false from {@link #useCache()}.
      *
-     * @return  the cache size
+     * @return the cache size
      */
     public int getCacheSize() {
         return cacheSize;

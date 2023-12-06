@@ -7,22 +7,47 @@ import java.util.Stack;
 
 /**
  * An {@link Iterator} for a {@link BTree} that traverses the tree in order.
+ * <p>
+ * Note that this implementation does not throw a {@link java.util.ConcurrentModificationException} if the tree is
+ * modified. This decision was made because it would introduce a degree of coupling between the BTree and this class,
+ * and the project specification does not introduce a circumstance in the command line programs where a BTree would be
+ * modified while being iterated over. If we were to build to a broader specification, we would implement this
+ * exception, but for the sake of time, we did not.
  *
- * @author Derek Caplinger
  * @author Justin Mello
  * @author Matt Youngberg
  */
 class BTreeInOrderIterator implements Iterator<TreeObject> {
 
     /**
-     * A {@link NodeFrame} represents a node in the {@link BTree} and maintains between invocations of
-     * {@link BTreeInOrderIterator#next()} to know what to process next.
+     * A {@link NodeFrame} represents a node in the {@link BTree} that's maintained in memory between invocations of
+     * {@link BTreeInOrderIterator#next()} to know what to process next. Since height is assumed to be small and
+     * the footprint of our own stack not too large, this is a fast approach that is better than having to seek to
+     * the next node from root every time.
      */
     private static class NodeFrame {
+
+        /**
+         * The {@link BTreeNode} that this {@link NodeFrame} represents.
+         */
         public BTreeNode node;
+
+        /**
+         * The index of the next key to process in the {@link BTreeNode} that this {@link NodeFrame} represents.
+         */
         public int index;
+
+        /**
+         * A flag to indicate whether the next thing to process is a child of the {@link BTreeNode} that this
+         * {@link NodeFrame} represents.
+         */
         public boolean processChildNext;
 
+        /**
+         * Construct a new {@link NodeFrame} for the given {@link BTreeNode}.
+         *
+         * @param node  the {@link BTreeNode} to construct a {@link NodeFrame} for
+         */
         public NodeFrame(BTreeNode node) {
             this.node = node;
             this.index = 0;
@@ -48,7 +73,7 @@ class BTreeInOrderIterator implements Iterator<TreeObject> {
     /**
      * Create a new {@link BTreeInOrderIterator} for the given {@link BTreeNode}.
      *
-     * @param btree  the {@link BTreeNode} that will act as the root for iteration.
+     * @param btree the {@link BTreeNode} that will act as the subject for iteration.
      */
     public BTreeInOrderIterator(BTree btree) throws IOException {
         this.stack = new Stack<>();
@@ -64,7 +89,7 @@ class BTreeInOrderIterator implements Iterator<TreeObject> {
     /**
      * Determine if there are more elements to process.
      *
-     * @return  true if there are more elements to process, false otherwise
+     * @return true if there are more elements to process, false otherwise
      */
     @Override
     public boolean hasNext() {

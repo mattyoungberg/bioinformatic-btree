@@ -82,9 +82,9 @@ public class GeneBankSearchBTree {
 	 * <p>
 	 * Invalid argument entries will throw a ParseArgumentException to be handled in generating error message.
 	 *
-	 * @param args command line arguments provided by user.
-	 * @throws ParseArgumentException exception issue encountered parsing arguments
-	 * @return validate {@link GeneBankSearchBTreeArguments} object
+	 * @param args						command line arguments provided by user.
+	 * @throws ParseArgumentException	exception issue encountered parsing arguments
+	 * @return 							validated {@link GeneBankSearchBTreeArguments} object
 	 */
 	private static GeneBankSearchBTreeArguments parseArguments(String[] args) throws ParseArgumentException {
 		try {

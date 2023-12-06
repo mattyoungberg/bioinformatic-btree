@@ -21,7 +21,6 @@ import java.nio.ByteBuffer;
  * up in a {@link ByteBuffer}, and is useful in allocating the space ahead of time.
  *
  * @author Derek Caplinger
- * @author Justin Mello
  * @author Matt Youngberg
  */
 public class TreeObject implements Comparable<TreeObject> {

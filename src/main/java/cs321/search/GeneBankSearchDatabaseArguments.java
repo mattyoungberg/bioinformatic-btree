@@ -181,5 +181,4 @@ public class GeneBankSearchDatabaseArguments {
 		// Create and return the arguments object
 		return new GeneBankSearchDatabaseArguments(Paths.get(databasePathValue), argMap.get("queryfile"));
 	}
-
 }

@@ -86,8 +86,7 @@ public class GeneBankSearchDatabase {
 	 *
 	 * @param  args                   command line arguments provided by user.
 	 * @throws ParseArgumentException exception issue encountered parsing arguments
-	 * @return                        validate
-	 *                                {@link GeneBankSearchDatabaseArguments} object
+	 * @return                        validated {@link GeneBankSearchDatabaseArguments} object
 	 */
 	private static GeneBankSearchDatabaseArguments parseArguments(String[] args) throws ParseArgumentException {
 		try {

@@ -18,7 +18,6 @@ import java.nio.ByteBuffer;
  * caller, the {@link BTree}, will track it.
  *
  * @author Derek Caplinger
- * @author Justin Mello
  * @author Matt Youngberg
  */
 class BTreeNode {
@@ -210,7 +209,9 @@ class BTreeNode {
      * @param t The minimum degree of the {@link BTree} that this {@link BTreeNode} is a part of.
      * @return  The number of keys a {@link BTreeNode} with the given minimum degree `t` can hold.
      */
-    static int getMaxKeyCount(int t) { return 2 * t - 1; }
+    static int getMaxKeyCount(int t) {
+        return 2 * t - 1;
+    }
 
     /**
      * Get how many children a {@link BTreeNode} with the given minimum degree `t` can hold.
@@ -221,9 +222,27 @@ class BTreeNode {
      * @param t The minimum degree of the {@link BTree} that this {@link BTreeNode} is a part of.
      * @return  The number of children a {@link BTreeNode} with the given minimum degree `t` can hold.
      */
-    static int getMaxChildCount(int t) { return 2 * t; }
+    static int getMaxChildCount(int t) {
+        return 2 * t;
+    }
 
-    static int getMinKeyCount(int t) { return t - 1; }
+    /**
+     * Get the minimum number of keys a {@link BTreeNode} with the given minimum degree `t` can hold.
+     *
+     * @param t The minimum degree of the {@link BTree} that this {@link BTreeNode} is a part of.
+     * @return  The minimum number of keys a {@link BTreeNode} with the given minimum degree `t` can hold.
+     */
+    static int getMinKeyCount(int t) {
+        return t - 1;
+    }
 
-    static int getMinChildCount(int t) { return t; }
+    /**
+     * Get the minimum number of children a {@link BTreeNode} with the given minimum degree `t` can hold.
+     *
+     * @param t The minimum degree of the {@link BTree} that this {@link BTreeNode} is a part of.
+     * @return  The minimum number of children a {@link BTreeNode} with the given minimum degree `t` can hold.
+     */
+    static int getMinChildCount(int t) {
+        return t;
+    }
 }

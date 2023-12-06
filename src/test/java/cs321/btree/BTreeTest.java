@@ -456,6 +456,12 @@ public class BTreeTest {
         assertTrue(validateBTreeInserts(b, input));
     }
 
+    /**
+     * Tests a simple case that a created BTree can be dumped to a file per the project spec.
+     *
+     * @throws BTreeException   if construction of the {@link BTree} fails
+     * @throws IOException      if there is an issue with the {@link BTree} writing to the file
+     */
     @Test
     public void testDumpToFile() throws BTreeException, IOException {
         BTree btree = new BTree(2, testFilename);
@@ -489,6 +495,11 @@ public class BTreeTest {
         assertEquals("a 1\nc 2\ng 3\nt 4\n", contents);
     }
 
+    /**
+     * Tests that a valid {@link java.util.Iterator} is returned from the {@link BTree}.
+     *
+     * @throws BTreeException   if construction of the {@link BTree} fails
+     */
     @Test
     public void testIterator() throws BTreeException {
         BTree btree = new BTree(2, testFilename);

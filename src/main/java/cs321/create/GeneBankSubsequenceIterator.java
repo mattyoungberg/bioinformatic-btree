@@ -17,7 +17,6 @@ import java.util.*;
  * Elements outputted by this iterator will work nicely with the {@link SequenceUtils} class.
  *
  * @author Derek Caplinger
- * @author Justin Mello
  * @author Matt Youngberg
  */
 public class GeneBankSubsequenceIterator implements Iterator<String>, AutoCloseable {
@@ -116,8 +115,8 @@ public class GeneBankSubsequenceIterator implements Iterator<String>, AutoClosea
     /**
      * Whether there are more subsequences to be returned from the Genebank file.
      *
-     * @return  `true` if there are more subsequences to be returned from the Genebank file, and `false` if there are
-     *          not.
+     * @return `true` if there are more subsequences to be returned from the Genebank file, and `false` if there are
+     *         not.
      */
     @Override
     public boolean hasNext() {
@@ -127,7 +126,7 @@ public class GeneBankSubsequenceIterator implements Iterator<String>, AutoClosea
     /**
      * Get the next subsequence in the GeneBank file.
      *
-     * @return  The next subsequence in the GeneBank file.
+     * @return The next subsequence in the GeneBank file.
      */
     @Override
     public String next() {
@@ -142,9 +141,6 @@ public class GeneBankSubsequenceIterator implements Iterator<String>, AutoClosea
 
         // Get the subsequence to return
         char next = charBuffer.get();  // Guaranteed to be a DNA Base
-        if (!DNA_BASES.contains(next)) {  // TODO can remove once functionality is verified
-            throw new RuntimeException("got a non-DNA base on invocation of next; this should never happen");
-        }
         this.subsequenceArr[this.subsequenceIdx] = Character.toLowerCase(next);
         this.subsequenceIdx = (this.subsequenceIdx + 1) % this.subsequenceArr.length;
         this.subsequenceFillCount++;

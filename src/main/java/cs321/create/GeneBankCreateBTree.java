@@ -25,10 +25,10 @@ public class GeneBankCreateBTree {
      * <p>
      * This method will parse the command line arguments and then create a BTree file based on the provided arguments.
      *
-     * @param args command line arguments provided with program call
-     * @throws BTreeException if there is an error creating the BTree
-     * @throws IOException    if there is an error reading the gbk file or writing the BTree file
-     * @throws SQLException   if there is an error creating/writing to a SQLite database
+     * @param args              command line arguments provided with program call
+     * @throws BTreeException   if there is an error creating the BTree
+     * @throws IOException      if there is an error reading the gbk file or writing the BTree file
+     * @throws SQLException     if there is an error creating/writing to a SQLite database
      */
     public static void main(String[] args) throws BTreeException, IOException, SQLException {
         // Print usage if requested
@@ -47,8 +47,8 @@ public class GeneBankCreateBTree {
      * This method takes in the command line arguments and will parse the arguments to return an object containing the
      * appropriate arguments or print a usage method and exit the program
      *
-     * @param args command line arguments provided with program call
-     * @return validated {@link GeneBankCreateBTreeArguments} object
+     * @param args  command line arguments provided with program call
+     * @return      validated {@link GeneBankCreateBTreeArguments} object
      */
     private static GeneBankCreateBTreeArguments parseArgumentsAndHandleExceptions(String[] args) {
         GeneBankCreateBTreeArguments geneBankCreateBTreeArguments = null;
@@ -66,9 +66,9 @@ public class GeneBankCreateBTree {
      * <p>
      * Invalid argument entries will throw a ParseArgumentException to be handled in generating error message.
      *
-     * @param args command line arguments provided by user.
-     * @throws ParseArgumentException exception issue encountered parsing arguments
-     * @return validate {@link GeneBankCreateBTreeArguments} object
+     * @param args                      command line arguments provided by user.
+     * @throws ParseArgumentException   exception issue encountered parsing arguments
+     * @return                          validated {@link GeneBankCreateBTreeArguments} object
      */
     public static GeneBankCreateBTreeArguments parseArguments(String[] args) throws ParseArgumentException {
         try {
@@ -104,10 +104,10 @@ public class GeneBankCreateBTree {
      * Debug level 1 uses the BTreeDumpToFile to output the created tree to a dump file, dump is appended to the
      * filename to designate.
      *
-     * @param args command line arguments provided with program call
-     * @throws BTreeException if there is an error creating the BTree
-     * @throws IOException    if there is an error reading the gbk file or writing the BTree file
-     * @throws SQLException   if there is an error creating/writing to a SQLite database
+     * @param args              command line arguments provided with program call
+     * @throws BTreeException   if there is an error creating the BTree
+     * @throws IOException      if there is an error reading the gbk file or writing the BTree file
+     * @throws SQLException     if there is an error creating/writing to a SQLite database
      */
     private static void createBTree(GeneBankCreateBTreeArguments args) throws BTreeException, IOException, SQLException {
         TreeObject.subsequenceLength = args.getSubsequenceLength();

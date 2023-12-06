@@ -9,10 +9,9 @@ import java.sql.Statement;
 import java.util.Iterator;
 
 /**
- * A utility class for creating a SQLite database file for a BTree.
+ * A utility class for creating a SQLite database file from a BTree at the end of its lifecycle.
  *
  * @author Derek Caplinger
- * @author Justin Mello
  * @author Matt Youngberg
  */
 public class BTreeSQLiteDBBuilder {
@@ -143,5 +142,4 @@ public class BTreeSQLiteDBBuilder {
     private static String encodeTreeObject(TreeObject obj) {
         return "(" + obj.getSubsequence() + ", " + obj.getCount() + ")";
     }
-
 }
