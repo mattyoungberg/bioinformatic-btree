@@ -32,7 +32,7 @@ public class GeneBankCreateBTree {
      */
     public static void main(String[] args) throws BTreeException, IOException, SQLException {
         // Print usage if requested
-        if (args[0].equals("-h") || args[0].equals("--help")) {
+        if (args.length == 0 || args[0].equals("-h") || args[0].equals("--help")) {
             printUsageAndExit("", 0);
         }
 
@@ -118,7 +118,12 @@ public class GeneBankCreateBTree {
         String gbkFileBaseName = gbkFilePath.getFileName().toString(); // Extracts just the base name
         String btreeFileName = gbkFileBaseName + ".btree.data." + args.getSubsequenceLength() + "." + args.getDegree();
 
-        BTree bTree = new BTree(args.getDegree(), btreeFileName);  // TODO wield cache constructor once implemented
+        BTree bTree;
+        if (args.useCache()) {
+            bTree = new BTree(args.getDegree(), btreeFileName, args.getCacheSize());
+        } else {
+            bTree = new BTree(args.getDegree(), btreeFileName);
+        }
         int subsequencesInserted = 0;
 
         String subsequenceString;

@@ -49,9 +49,9 @@ public class GeneBankCreateBTreeArgumentsTest {
     }
 
     @Test
-    public void testGetUseCache() {
+    public void testUseCache() {
         GeneBankCreateBTreeArguments args = new GeneBankCreateBTreeArguments(true, 2, testFileName, 3, 0, 0);
-        assert(args.getUseCache());
+        assert(args.useCache());
     }
 
     @Test
@@ -88,7 +88,7 @@ public class GeneBankCreateBTreeArgumentsTest {
     public void testFromStringArgsHappyPath() {
         String[] args = {"--cache=1", "--degree=2", "--gbkfile=testfile.gbk", "--length=3", "--cachesize=100", "--debug=0"};
         GeneBankCreateBTreeArguments gbkArgs = GeneBankCreateBTreeArguments.fromStringArgs(args);
-        assert(gbkArgs.getUseCache());
+        assert(gbkArgs.useCache());
         assert(gbkArgs.getDegree() == 2);
         assert(gbkArgs.getGbkFileName().equals(testFileName));
         assert(gbkArgs.getSubsequenceLength() == 3);
@@ -100,7 +100,7 @@ public class GeneBankCreateBTreeArgumentsTest {
     public void testFromStringWithoutOptionalsHappyPath() {
         String[] args = {"--cache=0", "--degree=0", "--gbkfile=testfile.gbk", "--length=3"};
         GeneBankCreateBTreeArguments gbkArgs = GeneBankCreateBTreeArguments.fromStringArgs(args);
-        assert(!gbkArgs.getUseCache());
+        assert(!gbkArgs.useCache());
         assert(gbkArgs.getDegree() == 0);
         assert(gbkArgs.getGbkFileName().equals(testFileName));
         assert(gbkArgs.getSubsequenceLength() == 3);
@@ -112,7 +112,19 @@ public class GeneBankCreateBTreeArgumentsTest {
     public void testFromStringArgsAllows0Degree() {
         String[] args = {"--cache=1", "--degree=0", "--gbkfile=testfile.gbk", "--length=3", "--cachesize=100", "--debug=0"};
         GeneBankCreateBTreeArguments gbkArgs = GeneBankCreateBTreeArguments.fromStringArgs(args);
-        assert(gbkArgs.getUseCache());
+        assert(gbkArgs.useCache());
+        assert(gbkArgs.getDegree() == 0);
+        assert(gbkArgs.getGbkFileName().equals(testFileName));
+        assert(gbkArgs.getSubsequenceLength() == 3);
+        assert(gbkArgs.getCacheSize() == 100);
+        assert(gbkArgs.getDebugLevel() == 0);
+    }
+
+    @Test
+    public void testFromStringArgsRandomOrder() {
+        String[] args = {"--degree=0", "--cachesize=100", "--cache=1", "--length=3", "--gbkfile=testfile.gbk", "--debug=0"};
+        GeneBankCreateBTreeArguments gbkArgs = GeneBankCreateBTreeArguments.fromStringArgs(args);
+        assert(gbkArgs.useCache());
         assert(gbkArgs.getDegree() == 0);
         assert(gbkArgs.getGbkFileName().equals(testFileName));
         assert(gbkArgs.getSubsequenceLength() == 3);
@@ -128,7 +140,7 @@ public class GeneBankCreateBTreeArgumentsTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testsUnknownArgument() {
+    public void testUnknownArgument() {
         String[] args = {"--cache=1", "--degree=2", "--gbkfile=testfile.gbk", "--length=3", "--cachesize=100", "--debug=0", "--unknown=1"};
         // Should throw an exception
         GeneBankCreateBTreeArguments.fromStringArgs(args);

@@ -12,6 +12,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 
 /**
  * Implements a BTree, which is optimized for large amounts of data that cannot fit in memory, given the proper degree.
@@ -69,6 +70,13 @@ public class BTree implements BTreeInterface, Iterable<TreeObject> {
      */
     private final int METADATA_SIZE = Long.BYTES + Integer.BYTES * 3;  // t + root position + count + height
 
+	/**
+	 * The {@link RandomAccessFile} that produces the {@link FileChannel} that the {@link BTree} is stored in.
+	 * <p>
+	 * Held as a field to close when {@link BTree#finishUp()} is called.
+	 */
+	private final RandomAccessFile randomAccessFile;
+
     /**
      * The {@link FileChannel} that the {@link BTree} is stored in.
      */
@@ -110,6 +118,14 @@ public class BTree implements BTreeInterface, Iterable<TreeObject> {
 	private Path filePath;
 
 	/**
+	 * The next position in the {@link BTree#fileChannel} to which you can write a new {@link BTreeNode}.
+	 * <p>
+	 * This is purposely decoupled from {@link FileChannel#size} method because the cache may write some nodes to disk
+	 * before others, regardless of when the {@link BTree} creates them for use.
+	 */
+	private long nextPosition = METADATA_SIZE;
+
+	/**
 	 * The root node of the {@link BTree}, which is always in memory
 	 */
 	BTreeNode root;  // Package private for BTreeInOrderIterator
@@ -117,7 +133,7 @@ public class BTree implements BTreeInterface, Iterable<TreeObject> {
 	/**
 	 * The cache of the {@link BTree}, which is optional
 	 */
-	Cache<Long, BTreeNode> cache = null;  // Left null to leave old constructors alone; code much check for null
+	LinkedHashMap<Long, BTreeNode> cache = null;  // Left null to leave old constructors alone; code must check for null
 
 	/**
 	 * Construct a BTree that already exists on disk, or if not, create a new one with an optimal degree.
@@ -131,8 +147,10 @@ public class BTree implements BTreeInterface, Iterable<TreeObject> {
 		boolean exists = filePath.toFile().exists();
 		if (exists) {
 			// Open the file for processing, get FileChannel
-			try (RandomAccessFile file = new RandomAccessFile(fileName, "rw")) {
-				this.fileChannel = file.getChannel();
+			try {
+				this.randomAccessFile = new RandomAccessFile(fileName, "rw");
+				this.fileChannel = this.randomAccessFile.getChannel();
+				this.nextPosition = this.fileChannel.size();  // Set nextPosition to end of file
 			} catch (IOException e) {
 				throw new BTreeException(e.getMessage());  // Given tests only take BTreeException
 			}
@@ -150,13 +168,14 @@ public class BTree implements BTreeInterface, Iterable<TreeObject> {
 			}
 		} else {  // Copied code from other constructor; not DRY, but we can't call the other constructor
 			this.t = calculateOptimalT();
-			this.rootPosition = METADATA_SIZE;  // Manually set before fileChannel is initialized
+			this.rootPosition = getNextPositionAndIncrement();  // Manually set before fileChannel is initialized
 			this.keyCount = 0;
 			this.height = 0;
 
 			// Open the file for processing, get FileChannel
 			try {
-				this.fileChannel = new RandomAccessFile(fileName, "rw").getChannel();
+				this.randomAccessFile = new RandomAccessFile(fileName, "rw");
+				this.fileChannel = this.randomAccessFile.getChannel();
 			} catch (FileNotFoundException e) {				// Given test `testBTreeCreate` only expects BTreeException,
 				throw new BTreeException(e.getMessage());  	// so we cast here, instead of raising an I/O based one.
 			}
@@ -196,13 +215,14 @@ public class BTree implements BTreeInterface, Iterable<TreeObject> {
 		} else {
 			this.t = degree;
 		}
-		this.rootPosition = METADATA_SIZE;  // Manually set before fileChannel is initialized
+		this.rootPosition = getNextPositionAndIncrement();  // Manually set before fileChannel is initialized
 		this.keyCount = 0;
 		this.height = 0;
 
 		// Open the file for processing, get FileChannel
 		try {
-			this.fileChannel = new RandomAccessFile(fileName, "rw").getChannel();
+			this.randomAccessFile = new RandomAccessFile(fileName, "rw");
+			this.fileChannel = this.randomAccessFile.getChannel();
 		} catch (FileNotFoundException e) {				// Given test `testBTreeCreateDegree` only expects
 			throw new BTreeException(e.getMessage());  	// BTreeException, so we cast here, instead of raising an I/O.
 		}
@@ -243,11 +263,9 @@ public class BTree implements BTreeInterface, Iterable<TreeObject> {
 	 * @param cacheCapacity		the capacity of the cache
 	 */
 	public BTree(int degree, String fileName, int cacheCapacity) throws BTreeException {
-		// Cache setup code
 		if (cacheCapacity <= 0) {
 			throw new IllegalArgumentException("Cache capacity must be greater than 0");
 		}
-		this.cache = new Cache<>(cacheCapacity);
 
 		// Duplicated code from BTree(int, String) constructor
 		this.filePath = Paths.get(fileName);
@@ -258,13 +276,14 @@ public class BTree implements BTreeInterface, Iterable<TreeObject> {
 		} else {
 			this.t = degree;
 		}
-		this.rootPosition = METADATA_SIZE;  // Manually set before fileChannel is initialized
+		this.rootPosition = getNextPositionAndIncrement();  // Manually set before fileChannel is initialized
 		this.keyCount = 0;
 		this.height = 0;
 
 		// Open the file for processing, get FileChannel
 		try {
-			this.fileChannel = new RandomAccessFile(fileName, "rw").getChannel();
+			this.randomAccessFile = new RandomAccessFile(fileName, "rw");
+			this.fileChannel = this.randomAccessFile.getChannel();
 		} catch (FileNotFoundException e) {				// Given test `testBTreeCreateDegree` only expects
 			throw new BTreeException(e.getMessage());  	// BTreeException, so we cast here, instead of raising an I/O.
 		}
@@ -284,6 +303,22 @@ public class BTree implements BTreeInterface, Iterable<TreeObject> {
 		} catch (IOException e) {
 			throw new BTreeException(e.getMessage());  // Given test `testBTreeCreateDegree` only take BTreeException
 		}
+
+		// Cache setup
+		this.cache = new LinkedHashMap<Long, BTreeNode>(cacheCapacity, 1.0f, true) {
+			@Override
+			protected boolean removeEldestEntry(java.util.Map.Entry<Long, BTreeNode> eldest) {
+				boolean willRemove = size() > cacheCapacity;
+				if (willRemove) {
+					try {
+						forceDiskWrite(eldest.getValue(), eldest.getKey());  // Force disk write before eviction
+					} catch (IOException e) {
+						throw new RuntimeException(e);  // Coerce to a RuntimeException to meet interface
+					}
+				}
+				return willRemove;
+			}
+		};
 	}
 
 	/**
@@ -307,11 +342,10 @@ public class BTree implements BTreeInterface, Iterable<TreeObject> {
 	 */
 	@Override
 	public int getNumberOfNodes() {
-        try {
-			return (int) (fileChannel.size() - METADATA_SIZE) / BTreeNode.getByteSize(t);
-		} catch (IOException e) {
-			throw new RuntimeException(e);  // BTreeInterface does not specify IOException, throwing as a runtime one.
-		}
+        long nextPosition = getNextPositionAndIncrement();
+		// Undo the increment
+		this.nextPosition -= BTreeNode.getByteSize(t);
+		return (int) ((nextPosition - METADATA_SIZE) / BTreeNode.getByteSize(t));
 	}
 
 	/**
@@ -326,7 +360,9 @@ public class BTree implements BTreeInterface, Iterable<TreeObject> {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void delete(long key) {}
+	public void delete(long key) {
+		// Not implementing per project spec
+	}
 
 	/**
 	 * {@inheritDoc}
@@ -397,11 +433,12 @@ public class BTree implements BTreeInterface, Iterable<TreeObject> {
 	 * @throws IOException	if an I/O error occurs
 	 */
 	public void finishUp() throws IOException, SQLException {
-		diskWrite(root, rootPosition);
+		forceDiskWrite(root, rootPosition);
+		flushCache();
 		writeMetaData();
-		fileChannel.force(true);
 		BTreeSQLiteDBBuilder.create(this, filePath);
 		fileChannel.close();
+		randomAccessFile.close();
 	}
 
 	/**
@@ -426,10 +463,9 @@ public class BTree implements BTreeInterface, Iterable<TreeObject> {
 	 */
 	private void createBTree() throws IOException {
 		BTreeNode newRoot = new BTreeNode(t);
-		newRoot.setKey(rootPosition);
 		newRoot.leaf = true;
 		newRoot.keyCount = 0;
-		diskWrite(newRoot, rootPosition);
+		diskWrite(newRoot, rootPosition);  // Cache should be null on first invocation if used
 		this.root = newRoot;
 	}
 
@@ -445,10 +481,13 @@ public class BTree implements BTreeInterface, Iterable<TreeObject> {
 		s.leaf = false;
 		s.keyCount = 0;
 		s.childPositions[0] = rootPosition;
+		if (cache != null) {
+			this.cache.put(rootPosition, root);  // Put root in the cache manually before reassignment
+		} else {
+			forceDiskWrite(root, rootPosition);  // Force disk write before reassignment
+		}
 		root = s;
-		rootPosition = getNextPosition();
-		root.setKey(rootPosition);
-		diskWrite(root, rootPosition);  // Has to be written to disk so splitChild can figure out where new node goes
+		rootPosition = getNextPositionAndIncrement();
 		splitChild(s, 0, rootPosition);
 		height++;  // height can only increase at split of the root node: pg 508, near the bottom
 		return s;
@@ -481,7 +520,7 @@ public class BTree implements BTreeInterface, Iterable<TreeObject> {
 		for (int j = x.keyCount; j >= i + 1; j--) {							// y keeps t-1 keys
 			x.childPositions[j+1] = x.childPositions[j];					// shift x's children to the right...
 		}
-		x.childPositions[i + 1] = getNextPosition();                       	// ... to make room for z as a child
+		x.childPositions[i + 1] = getNextPositionAndIncrement();                       	// ... to make room for z as a child
 		for (int j = x.keyCount - 1; j >= i; j--) {							// shift the corresponding keys in x
 			x.keys[j+1]= x.keys[j];
 		}
@@ -490,7 +529,6 @@ public class BTree implements BTreeInterface, Iterable<TreeObject> {
 		x.keyCount++;														// x has gained a child
 		diskWrite(y, x.childPositions[i]);
 		diskWrite(z, x.childPositions[i + 1]);
-		z.setKey(x.childPositions[i + 1]);
 		diskWrite(x, xPosition);
 	}
 
@@ -527,7 +565,7 @@ public class BTree implements BTreeInterface, Iterable<TreeObject> {
 			BTreeNode y = diskRead(x.childPositions[i]);
 			if (y.keyCount == BTreeNode.getMaxKeyCount(t)) {						// split the child if it is full
 				splitChild(x, i, xPosition);
-				y = diskRead(x.childPositions[i]);									// reread y after split...
+				y = diskRead(x.childPositions[i]);									// reread y after split... TODO still need this?
 				if (k.getSubsequence() > x.keys[i].getSubsequence()) {				// does k go into x.c[i] or x.c[i+1]
 					i++;
 					y = diskRead(x.childPositions[i]);
@@ -692,10 +730,9 @@ public class BTree implements BTreeInterface, Iterable<TreeObject> {
 		nodeBuffer.flip();
 
         BTreeNode node = BTreeNode.fromByteBuffer(nodeBuffer, getDegree());
-		node.setKey(position);
 
 		if (this.cache != null) {  // If cache is enabled, add the node to it.
-			this.cache.add(position, node);
+			this.cache.put(position, node);
 		}
 
 		return node;
@@ -703,6 +740,10 @@ public class BTree implements BTreeInterface, Iterable<TreeObject> {
 
     /**
      * Writes a {@link BTreeNode} to the {@link BTree#fileChannel}.
+	 * <p>
+	 * Note that if the cache is enabled, actual disk writes are managed by the cache's eviction policy. This method's
+	 * behavior then changes to just assure that the node called with this method is persisted to the cache if it's not
+	 * already present, as it has just assumedly been used and therefore should be cached.
      *
      * @param node          the node to write
      * @param position      the byte offset for the node in the data file
@@ -716,26 +757,65 @@ public class BTree implements BTreeInterface, Iterable<TreeObject> {
             throw new IllegalArgumentException("cannot write node to tree metadata");
         }
 
+		if (node == root) {
+			return;  // Don't write the root node to disk until a split occurs; see splitRoot()
+		}
+
+		if (cache == null) {
+			forceDiskWrite(node, position);
+		} else if (!this.cache.containsKey(position)) {
+			this.cache.put(position, node);
+		}
+    }
+
+	/**
+	 * Bypass the cache and write a {@link BTreeNode} to the {@link BTree#fileChannel}.
+	 * <p>
+	 * This method should be judiciously used, as the main interface into persistence for the {@link BTree} is via its
+	 * {@link BTree#diskWrite} method. That method manages the relationship between disk and the cache. If you really
+	 * intend to force a write to disk, this method should be used.
+	 *
+	 * @param node			The {@link BTreeNode} to write
+	 * @param position		The byte offset for the node in the data file
+	 * @throws IOException	if an I/O error occurs
+	 */
+	private void forceDiskWrite(BTreeNode node, long position) throws IOException {
+		if (position < 0) {
+			throw new IllegalArgumentException("position must be non-negative");
+		}
+
+		if (position < METADATA_SIZE) {
+			throw new IllegalArgumentException("cannot write node to tree metadata");
+		}
+
 		fileChannel.position(position);
 		nodeBuffer.clear();
 		node.writeToByteBuffer(nodeBuffer);
 		nodeBuffer.flip();
 		fileChannel.write(nodeBuffer);
-    }
+	}
 
 	/**
 	 * Get the next position in the {@link BTree#fileChannel} to which you can write a new {@link BTreeNode}.
-	 * <p>
-	 * This method really just acts as a wrapper to catch any {@link IOException}s that can occur while reading the
-	 * {@link BTree#fileChannel}'s size.
 	 *
 	 * @return	the next position in the {@link BTree#fileChannel} to which you can write a new {@link BTreeNode}
 	 */
-	private long getNextPosition() {
-		try {
-			return fileChannel.size();
-		} catch (IOException e) {
-			throw new RuntimeException(e);
+	private long getNextPositionAndIncrement() {
+		long retVal = nextPosition;
+		nextPosition += BTreeNode.getByteSize(t);
+		return retVal;
+	}
+
+	/**
+	 * Flush the cache to disk.
+	 */
+	private void flushCache() throws IOException {
+		if (cache == null) {
+			return;
+		}
+
+		for (java.util.Map.Entry<Long, BTreeNode> entry : this.cache.entrySet()) {
+			forceDiskWrite(entry.getValue(), entry.getKey());
 		}
 	}
 }

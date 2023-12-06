@@ -88,7 +88,7 @@ class BTreeInOrderIterator implements Iterator<TreeObject> {
             TreeObject obj = frame.node.keys[frame.index];
             frame.index++;
             if (frame.index == frame.node.keyCount) {
-                popFrameAndFinishedAncestors(frame);
+                popFrameAndFinishedAncestors();
             }
             return obj;
         } else {  // Guaranteed to have children
@@ -131,10 +131,8 @@ class BTreeInOrderIterator implements Iterator<TreeObject> {
 
     /**
      * Pop a given node and all its finished ancestors off the stack.
-     *
-     * @param frame the node to that will be popped, and whose ancestors will be popped if they are finished
      */
-    private void popFrameAndFinishedAncestors(NodeFrame frame) {
+    private void popFrameAndFinishedAncestors() {
         stack.pop();  // Pop the node
 
         while (!stack.isEmpty()) {
