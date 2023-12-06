@@ -15,42 +15,40 @@ import java.util.regex.Pattern;
 /**
  * A class to represent the arguments to the GeneBankSearchDatabase program.
  * <p>
- * Create a new instance via the factory method
- * {@link #fromStringArgs(String[])}. This will parse the string array of
- * arguments from the command line, run validation, and return a new
- * {@link GeneBankSearchDataBaseArguments} object.
+ * Create a new instance via the factory method {@link #fromStringArgs(String[])}. This will parse the string array of
+ * arguments from the command line, run validation, and return a new {@link GeneBankSearchDatabaseArguments} object.
  * <p>
  * The usage, per the project spec, is as follows:
  * <p>
- * 
  * <pre>
-* java -jar  java -jar build/libs/GeneBankSearchDatabase.jar --database=<SQLite-database-path> --queryfile=<query-file>
+ * java -jar  java -jar build/libs/GeneBankSearchDatabase.jar --database=&lt;SQLite-database-path&gt;
+ * --queryfile=&lt;query-file&gt;
  * </pre>
  *
  * @author Derek Caplinger
  * @author Matt Youngberg
  */
 public class GeneBankSearchDatabaseArguments {
+
 	/**
 	 * A pattern that string arguments must match.
 	 */
 	private static final Pattern argPattern = Pattern.compile("^--([a-zA-Z]+)=([0-9a-zA-Z._/\\\\:-]+)$");
 
 	/**
-	 * A Path object to the location of the SQLite Database created alongside the
-	 * BTree.
+	 * A {@link Path} object to the location of the SQLite Database created alongside the {@link cs321.btree.BTree}.
 	 */
 	private final Path databasePath;
 
 	/**
-	 * The file name of the Query file. Should exist on disk
+	 * The file name of the Query file. Should exist on disk.
 	 */
 	private final String queryFileName;
 
 	/**
 	 * Create a new {@link GeneBankSearchDatabaseArguments} object.
 	 *
-	 * @param databasePath  The path to the SQLite database created alongside BTree
+	 * @param databasePath  The path to the SQLite database created alongside the {@link cs321.btree.BTree}
 	 * @param queryFileName the file name of the Query file. Should exist on disk
 	 *
 	 */
@@ -59,9 +57,11 @@ public class GeneBankSearchDatabaseArguments {
 		this.queryFileName = queryFileName;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public boolean equals(Object obj) {
-		// this method was generated using an IDE
 		if (this == obj) {
 			return true;
 		}
@@ -94,14 +94,18 @@ public class GeneBankSearchDatabaseArguments {
 		return true;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public String toString() {
-		// this method was generated using an IDE
 		return "GeneBankSearchDatabaseArguments{" + "dataBasePath=" + getDatabasePath() + ", queryFileName='"
 				+ getQueryFileName() + '\'' + '}';
 	}
 
 	/**
+	 * Get the path to the SQLite database created alongside {@link cs321.btree.BTree}.
+	 *
 	 * @return the databasePath
 	 */
 	public Path getDatabasePath() {
@@ -109,6 +113,8 @@ public class GeneBankSearchDatabaseArguments {
 	}
 
 	/**
+	 * Get the file name of the Query file. Should exist on disk.
+	 *
 	 * @return the queryFileName
 	 */
 	public String getQueryFileName() {
@@ -116,15 +122,14 @@ public class GeneBankSearchDatabaseArguments {
 	}
 
 	/**
-	 * Create a GeneBankSearchDatabaseArguments object from a string array of
-	 * arguments, typically the command line args.
+	 * Create a GeneBankSearchDatabaseArguments object from a string array of arguments, typically the command line
+	 * args.
 	 * <p>
-	 * Similarly to GeneBankCreateBTreeArguments this method has been added to the
-	 * arguments class that manages what the arguments should be to be parsed and
-	 * validated
+	 * Similarly to GeneBankCreateBTreeArguments this method has been added to the arguments class that manages what the
+	 * arguments should be to be parsed and validated
 	 * 
-	 * @param  args the string array of arguments
-	 * @return      a GeneBankSearchDatabaseArguments object
+	 * @param args	the String array of arguments
+	 * @return		a {@link GeneBankSearchDatabaseArguments} object
 	 */
 	public static GeneBankSearchDatabaseArguments fromStringArgs(String[] args) {
 		Map<String, String> argMap = new HashMap<>();
@@ -160,12 +165,10 @@ public class GeneBankSearchDatabaseArguments {
 		// Check for invalid arguments and consistency
 
 		// database path
-		String databasePathString = argMap.get("database");
-		try {
-			Path databasePath = Paths.get(databasePathString);
-		} catch (InvalidPathException e) {
-			throw new IllegalArgumentException(
-					"Invalid Path argument: " + databasePathString + " unable to be resolved.");
+		String databasePathValue = argMap.get("database");
+		File databaseFile = new File(databasePathValue);
+		if (!databaseFile.exists()) {
+			throw new IllegalArgumentException("Invalid argument. database file not found: database=" + databasePathValue);
 		}
 
 		// queryfile
@@ -176,7 +179,7 @@ public class GeneBankSearchDatabaseArguments {
 		}
 
 		// Create and return the arguments object
-		return new GeneBankSearchDatabaseArguments(Paths.get(databasePathString), argMap.get("queryfile"));
+		return new GeneBankSearchDatabaseArguments(Paths.get(databasePathValue), argMap.get("queryfile"));
 	}
 
 }

@@ -23,4 +23,8 @@ build/
 *.data.*
 *.dump.*
 dump
+
+# ignore project output files
 query*test*.gbk.out
+data/files_gbk/hs_ref_chrY.gbk
+data/queries/query*-test*.*.db.out
