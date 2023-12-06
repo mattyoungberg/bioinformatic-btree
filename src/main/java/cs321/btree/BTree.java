@@ -781,6 +781,8 @@ public class BTree implements BTreeInterface, Iterable<TreeObject> {
 	/**
 	 * Create a {@link LinkedHashMap} for a cache with a properly overwritten {@link LinkedHashMap#removeEldestEntry}
 	 * method.
+	 *
+	 * @param cacheCapacity	the capacity of the cache
 	 */
 	private LinkedHashMap<Long, BTreeNode> createCache(int cacheCapacity) {
 		return new LinkedHashMap<Long, BTreeNode>(cacheCapacity, 1.0f, true) {
