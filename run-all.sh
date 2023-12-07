@@ -10,20 +10,20 @@
 # test0.gbk
 ./create-btrees.sh test0.gbk
 ./check-dumpfiles.sh test0.gbk
-sleep 1
+sleep 2
 ./check-queries.sh test0.gbk
-sleep 1
+sleep 2
 ./check-db.sh test0.gbk
-sleep 1
+sleep 2
 
 # test5.gbk
 ./create-btrees.sh test5.gbk
 ./check-dumpfiles.sh test5.gbk
-sleep 1
+sleep 2
 ./check-queries.sh test5.gbk
-sleep 1
+sleep 2
 ./check-db.sh test5.gbk
-#sleep 1
+#sleep 2
 
 # hs_ref_chrY.gbk
 #./create-btrees.sh hs_ref_chrY.gbk
