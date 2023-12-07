@@ -129,6 +129,8 @@
 
 [Closes #57](https://github.com/mello-j/CS321-003-f23-team-09/pull/75) 10c1f159e9ee4297b7872747afa37f35981f8110 `Matt Youngberg`
 
+[Closes #70](https://github.com/mello-j/CS321-003-f32-team-09/pull/76) 75b91f5ef8438bd4eab0fc2f32e6cab850bffdc2 `Matt Youngberg`
+
 ## Story completed 
 [Closes #2](https://github.com/mello-j/CS321-003-f23-team-09/issues/2) closed with comment `Matt Youngberg`
 
