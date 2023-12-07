@@ -66,7 +66,7 @@ class BTreeInOrderIterator implements Iterator<TreeObject> {
 
     /**
      * A reference to the {@link BTree} provided upon construction for the sake of invoking
-     * {@link BTree#diskRead(long)}.
+     * {@link BTree#getNode(long)}.
      */
     private final BTree btree;
 
@@ -147,7 +147,7 @@ class BTreeInOrderIterator implements Iterator<TreeObject> {
         }
 
         NodeFrame nodeFrame;
-        nodeFrame = new NodeFrame(btree.diskRead(position));
+        nodeFrame = new NodeFrame(btree.getNode(position));
 
         stack.push(nodeFrame);
 

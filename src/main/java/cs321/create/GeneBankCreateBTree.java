@@ -140,14 +140,16 @@ public class GeneBankCreateBTree {
         }
 
         if (args.getDebugLevel() >= 0) {
-            System.out.println("Successfully inserted " + subsequencesInserted + " subsequences!");
+            System.out.println();
+            System.out.println("Successfully inserted " + subsequencesInserted + " subsequences of length " + args.getSubsequenceLength() + "!");
+            System.out.println("Cache hit rate: " + bTree.getCacheHitRate());
+            System.out.println();
         }
 
         if (args.getDebugLevel() >= 1) {
             PrintWriter printWriter = new PrintWriter("dump");  // This is what `create-btrees.sh` expects
             bTree.dumpToFile(printWriter);
         }
-
         bTree.finishUp();
     }
 }
