@@ -63,7 +63,7 @@
 ## Story completed 
 [Closes #3]() febe1d4551fe01328e3824d066629ccec06219cd addressed by `Matt Youngberg`
 
-#Sprint 4 (November 24th, Friday 2023 - November 30th, Thursday 2023)
+# Sprint 4 (November 24th, Friday 2023 - November 30th, Thursday 2023)
 ## Tasks completed
 [Closes #16](https://github.com/mello-j/CS321-003-f23-team-09/pull/46) febe1d4551fe01328e3824d066629ccec06219cd `Matt Youngberg`
 
@@ -81,7 +81,7 @@
 
 [Closes #12](https://github.com/mello-j/CS321-003-f23-team-09/pull/47) 0d52a4260b4618e04ecfa1b6a993663986ea3c24 `Matt Youngberg` `Derek Caplinger`
 
-#Sprint 5 (December 1st, Friday 2023 - December 8th, Friday 2023)
+# Sprint 5 (December 1st, Friday 2023 - December 8th, Friday 2023)
 ## Tasks completed
 [Closes #37](https://github.com/mello-j/CS321-003-f23-team-09/pull/48) 541da878a3e42d295c64c42e69c138a0daca10f9 `Derek Caplinger`
 
