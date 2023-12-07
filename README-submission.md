@@ -64,7 +64,9 @@ parallel integration. The essence of an Iterator is to traverse a collection, an
 fitting. A significant advantage of using well-known interfaces is the reduced integration time due to established
 familiarity. I’m glad that I could effectively utilize this aspect in our project. Adhering to the interface may have
 made the code more verbose, as an Iterator almost always has to maintain state between invocations of next() if it wants
-to be asymptotically efficient, but the benefits of using an established interface outweighed the verbosity.
+to be asymptotically efficient, but the benefits of using an established interface outweighed the verbosity. I used the
+same approach with the GeneBank files as well, treating the files as a type of subsequence collection once the desired
+subsequence length is known.
 
 Another fun aspect of this project was all the facets that were available for optimization. How you define your nodes
 on disk, how you manage your buffers, how you manage your cache, how you manage reading subsequences from disk, etc. It
