@@ -21,9 +21,13 @@
 
 [Closes #20](https://github.com/mello-j/CS321-003-f23-team-09/pull/24) e50370874057a983849477c440a51a2a1b4f308c `Matt Youngberg` 
 
-[Closes #21](https://github.com/mello-j/CS321-003-f23-team-09/pull/24) e50370874057a983849477c440a51a2a1b4f308c `Matt Youngberg` addressed 3861fc0b2f5b0762911d6bdf4a66ed4f82e800fe `Derek Caplinger`
+[Closes #21](https://github.com/mello-j/CS321-003-f23-team-09/pull/24) e50370874057a983849477c440a51a2a1b4f308c `Matt Youngberg` 
 
-[Closes #22](https://github.com/mello-j/CS321-003-f23-team-09/pull/24) e50370874057a983849477c440a51a2a1b4f308c `Matt Youngberg` addressed 3861fc0b2f5b0762911d6bdf4a66ed4f82e800fe `Derek Caplinger`
+[Addressed #21](https://github.com/mello-j/CS321-003-f23-team-09/issues/21) 3861fc0b2f5b0762911d6bdf4a66ed4f82e800fe `Derek Caplinger`
+
+[Closes #22](https://github.com/mello-j/CS321-003-f23-team-09/pull/24) e50370874057a983849477c440a51a2a1b4f308c `Matt Youngberg` 
+
+[Addressed #22](https://github.com/mello-j/CS321-003-f23-team-09/issues/22)3861fc0b2f5b0762911d6bdf4a66ed4f82e800fe `Derek Caplinger`
 
 [Closes #23](https://github.com/mello-j/CS321-003-f23-team-09/pull/24) e50370874057a983849477c440a51a2a1b4f308c `Matt Youngberg` 
 
