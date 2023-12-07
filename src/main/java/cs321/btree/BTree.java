@@ -60,11 +60,11 @@ import java.util.LinkedHashMap;
  * </pre>
  *
  * @author Derek Caplinger
- * @author Justin Mello
  * @author Matt Youngberg
  *
  */
 public class BTree implements BTreeInterface, Iterable<TreeObject> {
+
     /**
      * The size of the metadata for the {@link BTree} in bytes.
      */
@@ -126,21 +126,21 @@ public class BTree implements BTreeInterface, Iterable<TreeObject> {
 	private long nextPosition = METADATA_SIZE;
 
 	/**
+	 * The cache of the {@link BTree}, which is optional
+	 */
+	private LinkedHashMap<Long, BTreeNode> cache = null;
+
+	/**
 	 * The root node of the {@link BTree}, which is always in memory
 	 */
 	BTreeNode root;  // Package private for BTreeInOrderIterator
-
-	/**
-	 * The cache of the {@link BTree}, which is optional
-	 */
-	LinkedHashMap<Long, BTreeNode> cache = null;  // Left null to leave old constructors alone; code must check for null
 
 	/**
 	 * Construct a BTree that already exists on disk, or if not, create a new one with an optimal degree.
 	 * <p>
 	 * {@link BTree}s are designed to maximize their degree <code>t</code> under a constraint of 4096KB disk blocks.
 	 *
-	 * @param fileName 		file name that stores the {@link BTree} on disk
+	 * @param fileName file name that stores the {@link BTree} on disk
 	 */
 	public BTree(String fileName) throws BTreeException {
 		this.filePath = Paths.get(fileName);
@@ -203,8 +203,8 @@ public class BTree implements BTreeInterface, Iterable<TreeObject> {
 	 * <p>
 	 * If the given degree is 0, the optimal degree will be calculated for a block size of 4096 bytes.
 	 *
-	 * @param degree		integer value for the desired degree of BTree
-	 * @param fileName		file name that will the {@link BTree} on disk
+	 * @param degree	integer value for the desired degree of BTree
+	 * @param fileName	file name that will the {@link BTree} on disk
 	 */
 	public BTree(int degree, String fileName) throws BTreeException {
 		this.filePath = Paths.get(fileName);
@@ -279,7 +279,6 @@ public class BTree implements BTreeInterface, Iterable<TreeObject> {
 		this.cache = createCache(cacheCapacity);
 	}
 
-
 	/**
 	 * {@inheritDoc}
 	 */
@@ -353,7 +352,7 @@ public class BTree implements BTreeInterface, Iterable<TreeObject> {
 			try {
 				obj = iterator.next();
 			} catch (RuntimeException e) {
-				throw new IOException(e);  // Iterator can't throw IOException, so we wrap it in a RuntimeException
+				throw new IOException(e);  // Coerce to an IOException to back out coercion by Iterator
 			}
 			String subSeqString = SequenceUtils.longToDnaString(obj.getSubsequence(), TreeObject.subsequenceLength);
 			out.println(subSeqString + " " + obj.getCount());
@@ -378,7 +377,7 @@ public class BTree implements BTreeInterface, Iterable<TreeObject> {
 		try {
 			return new BTreeInOrderIterator(this);
 		} catch (IOException e) {
-			throw new RuntimeException(e);  // Iterable can't throw IOException, so we wrap it in a RuntimeException
+			throw new RuntimeException(e);  // Coerce to a RuntimeException to meet interface
 		}
 	}
 
@@ -390,6 +389,7 @@ public class BTree implements BTreeInterface, Iterable<TreeObject> {
 	 * {@link BTree} or otherwise modifying one.
 	 *
 	 * @throws IOException	if an I/O error occurs
+	 * @throws SQLException	if an SQL error occurs
 	 */
 	public void finishUp() throws IOException, SQLException {
 		forceDiskWrite(root, rootPosition);
@@ -524,7 +524,7 @@ public class BTree implements BTreeInterface, Iterable<TreeObject> {
 			BTreeNode y = diskRead(x.childPositions[i]);
 			if (y.keyCount == BTreeNode.getMaxKeyCount(t)) {						// split the child if it is full
 				splitChild(x, i, xPosition);
-				y = diskRead(x.childPositions[i]);									// reread y after split... TODO still need this?
+				y = diskRead(x.childPositions[i]);									// reread y after split...
 				if (k.getSubsequence() > x.keys[i].getSubsequence()) {				// does k go into x.c[i] or x.c[i+1]
 					i++;
 					y = diskRead(x.childPositions[i]);
@@ -607,7 +607,6 @@ public class BTree implements BTreeInterface, Iterable<TreeObject> {
 	 * +--------+----------------+--------+--------+
 	 * </pre>
      */
-
 	private void readMetaData() {
 		try {
 			fileChannel.position(0);
@@ -783,6 +782,8 @@ public class BTree implements BTreeInterface, Iterable<TreeObject> {
 	 * method.
 	 *
 	 * @param cacheCapacity	the capacity of the cache
+	 * @return				a {@link LinkedHashMap} for a cache with a properly overwritten
+	 * 						{@link LinkedHashMap#removeEldestEntry} method
 	 */
 	private LinkedHashMap<Long, BTreeNode> createCache(int cacheCapacity) {
 		return new LinkedHashMap<Long, BTreeNode>(cacheCapacity, 1.0f, true) {

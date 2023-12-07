@@ -63,6 +63,12 @@ public class BTreeInOrderIteratorTest {
         new BTreeInOrderIterator(new BTree(2, testFile.getName()));
     }
 
+    /**
+     * Tests that an iterator correctly handles a single element that's been inserted 10 times.
+     *
+     * @throws BTreeException
+     * @throws IOException
+     */
     @Test
     public void testMultipleInsertions() throws BTreeException, IOException {
         BTree btree = new BTree(2, testFile.getName());
@@ -369,6 +375,12 @@ public class BTreeInOrderIteratorTest {
     // Corner cases
     ///////////////
 
+    /**
+     * Tests that the iterator behaves properly when the BTree is empty.
+     *
+     * @throws BTreeException   if construction of the BTree fails
+     * @throws IOException      if insertion into or iteration over the BTree fails
+     */
     @Test
     public void emptyTree() throws BTreeException, IOException {
         BTree btree = new BTree(testFile.getName());
@@ -453,6 +465,4 @@ public class BTreeInOrderIteratorTest {
 
         assertFalse(iter.hasNext());
     }
-
-    // Consider adding a check for concurrent modification exception
 }

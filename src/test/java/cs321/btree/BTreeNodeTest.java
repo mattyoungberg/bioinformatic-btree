@@ -4,18 +4,36 @@ import org.junit.Test;
 
 import java.nio.ByteBuffer;
 
+/**
+ * Tests for the {@link BTreeNode} class.
+ *
+ * @author Derek Caplinger
+ * @author Matt Youngberg
+ */
 public class BTreeNodeTest {
 
+    /**
+     * Test the constructor for a {@link BTreeNode} that is stored on disk.
+     * <p>
+     * Note that we don't actually have to read from disk; it's called the `disk constructor` because that's when its
+     * wielded.
+     */
     @Test
     public void testDiskConstructor() {
         new BTreeNode(new TreeObject[3], new long[4]);
     }
 
+    /**
+     * Test the constructor for a new {@link BTreeNode}.
+     */
     @Test
     public void testNewConstructor() {
         new BTreeNode(2);
     }
 
+    /**
+     * Test the {@link BTreeNode#getByteSize(int)} method when t = 2.
+     */
     @Test
     public void testGetByteSizeT2() {
         int t = 2;
@@ -23,6 +41,9 @@ public class BTreeNodeTest {
         assert size == ((2 * t - 1) * TreeObject.BYTE_SIZE) + (2 * t * Long.BYTES);
     }
 
+    /**
+     * Test the {@link BTreeNode#getByteSize(int)} method when t = 3.
+     */
     @Test
     public void testGetByteSizeT3() {
         int t = 3;
@@ -30,6 +51,9 @@ public class BTreeNodeTest {
         assert size == ((2 * t - 1) * TreeObject.BYTE_SIZE) + (2 * t * Long.BYTES);
     }
 
+    /**
+     * Test that a {@link BTreeNode} can be written to a {@link ByteBuffer} correctly.
+     */
     @Test
     public void testWriteToByteBuffer() {
         int t = 3;
@@ -40,6 +64,9 @@ public class BTreeNodeTest {
         assert buffer.remaining() == BTreeNode.getByteSize(t);
     }
 
+    /**
+     * Test that a {@link BTreeNode} can be read from a {@link ByteBuffer} correctly.
+     */
     @Test
     public void testReadFromByteBuffer() {
         int t = 3;
@@ -54,6 +81,10 @@ public class BTreeNodeTest {
         assert readNode.keyCount == 0;
     }
 
+    /**
+     * Tests that a {@link BTreeNode} can be written to a {@link ByteBuffer} and then read from that {@link ByteBuffer}
+     * correctly.
+     */
     @Test
     public void testWriteReadCombination() {
         int t = 3;
@@ -69,7 +100,7 @@ public class BTreeNodeTest {
         writeNode.keyCount = 3;
         ByteBuffer buffer = ByteBuffer.allocate(BTreeNode.getByteSize(t));
         writeNode.writeToByteBuffer(buffer);
-        buffer.position(0);
+        buffer.flip();
         BTreeNode readNode = BTreeNode.fromByteBuffer(buffer, t);
         assert readNode.keys.length == writeNode.keys.length;
         assert readNode.childPositions.length == writeNode.childPositions.length;
@@ -87,6 +118,10 @@ public class BTreeNodeTest {
         assert readNode.keyCount == writeNode.keyCount;
     }
 
+    /**
+     * Tests that a {@link BTreeNode} can be written to a {@link ByteBuffer} and then read from that {@link ByteBuffer}
+     * correctly when there are nulls in the keys array.
+     */
     @Test
     public void testWriteReadCombinationWithNulls() {
         int t = 3;

@@ -11,12 +11,18 @@ import java.io.IOException;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
-public class GeneBankCreateBTreeTest
-{
-    private String[] args;
-    private GeneBankCreateBTreeArguments expectedConfiguration;
-    private GeneBankCreateBTreeArguments actualConfiguration;
+/**
+ * Tests the {@link GeneBankCreateBTree} class.
+ *
+ * @author Bogdan Dit
+ * @author Derek Caplinger
+ * @author Matt Youngberg
+ */
+public class GeneBankCreateBTreeTest {
 
+    /**
+     * Creates a test file for the tests to use.
+     */
     @BeforeClass
     public static void setUpClass() {
         File testFile = new File("fileNameGbk.gbk");
@@ -29,6 +35,9 @@ public class GeneBankCreateBTreeTest
         }
     }
 
+    /**
+     * Deletes the test file created by the tests.
+     */
     @AfterClass
     public static void tearDownClass() {
         File testFile = new File("fileNameGbk.gbk");
@@ -37,18 +46,25 @@ public class GeneBankCreateBTreeTest
         }
     }
 
+    /**
+     * A given project tests that the arguments are parsed correctly.
+     * <p>
+     * This is much more thoroughly tested by the {@link GeneBankCreateBTreeArgumentsTest} class.
+     *
+     * @throws ParseArgumentException
+     */
     @Test
     public void parse4CorrectArgumentsTest() throws ParseArgumentException
     {
         // Changed per Piazza question
-        args = new String[4];
+        String[] args = new String[4];
         args[0] = "--cache=0";
         args[1] = "--degree=20";
         args[2] = "--gbkfile=fileNameGbk.gbk";
         args[3] = "--length=13";
 
-        expectedConfiguration = new GeneBankCreateBTreeArguments(false, 20, "fileNameGbk.gbk", 13, 0, 0);
-        actualConfiguration = GeneBankCreateBTree.parseArguments(args);
+        GeneBankCreateBTreeArguments expectedConfiguration = new GeneBankCreateBTreeArguments(false, 20, "fileNameGbk.gbk", 13, 0, 0);
+        GeneBankCreateBTreeArguments actualConfiguration = GeneBankCreateBTree.parseArguments(args);
         assertEquals(expectedConfiguration, actualConfiguration);
     }
 

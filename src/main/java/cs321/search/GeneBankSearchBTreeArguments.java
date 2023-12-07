@@ -163,7 +163,6 @@ public class GeneBankSearchBTreeArguments {
                 '}';
     }
 
-
     /**
      * Get whether to use a cache.
      *
