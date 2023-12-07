@@ -14,7 +14,7 @@ import java.util.Stack;
  * modified while being iterated over. If we were to build to a broader specification, we would implement this
  * exception, but for the sake of time, we did not.
  *
- * @author Justin Mello
+ * @author Derek Caplinger
  * @author Matt Youngberg
  */
 class BTreeInOrderIterator implements Iterator<TreeObject> {
