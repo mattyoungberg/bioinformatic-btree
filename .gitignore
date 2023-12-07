@@ -28,3 +28,5 @@ dump
 query*test*.gbk.out
 data/files_gbk/hs_ref_chrY.gbk
 data/queries/query*-test*.*.db.out
+data/queries/query*-hs_ref_chrY.gbk.out
+data/queries/query*-hs_ref_chrY.*.db.out
