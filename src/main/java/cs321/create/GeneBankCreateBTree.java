@@ -118,6 +118,8 @@ public class GeneBankCreateBTree {
         String gbkFileBaseName = gbkFilePath.getFileName().toString(); // Extracts just the base name
         String btreeFileName = gbkFileBaseName + ".btree.data." + args.getSubsequenceLength() + "." + args.getDegree();
 
+        System.out.println();
+        System.out.println("Creating BTree from file \"" + gbkFilePathString + "\"...");
         BTree bTree;
         if (args.useCache()) {
             bTree = new BTree(args.getDegree(), btreeFileName, args.getCacheSize());
@@ -139,17 +141,33 @@ public class GeneBankCreateBTree {
             }
         }
 
-        if (args.getDebugLevel() >= 0) {
-            System.out.println();
-            System.out.println("Successfully inserted " + subsequencesInserted + " subsequences of length " + args.getSubsequenceLength() + "!");
-            System.out.println("Cache hit rate: " + bTree.getCacheHitRate());
+        System.out.println("BTree created successfully.");
+        System.out.println();
+        System.out.println("Summary:");
+        System.out.println("-------");
+        System.out.printf("%-30s%,10d%n", "Subsequences inserted:", subsequencesInserted);
+        System.out.printf("%-30s%,10d%n", "Subsequence length:", args.getSubsequenceLength());
+        System.out.printf("%-30s%,10d%n", "BTree degree:", bTree.getDegree());
+        System.out.printf("%-30s%,10d%n", "Total number of objects:", bTree.getSize());
+        System.out.printf("%-30s%,10d%n", "Total number of nodes:", bTree.getNumberOfNodes());
+        System.out.printf("%-30s%,10d%n", "Height of final tree:", bTree.getHeight());
+        if (args.useCache()) {
+            System.out.printf("%-30s%,9.2f%%%n", "Cache hit rate:", bTree.getCacheHitRate() * 100);
+        }
+        System.out.println();
+
+        if (args.getDebugLevel() == 1) {
+            System.out.printf("Dumping BTree contents to file...%n");
+            PrintWriter printWriter = new PrintWriter("dump");  // This is what `create-btrees.sh` expects
+            bTree.dumpToFile(printWriter);
+            printWriter.close();
+            System.out.println("Done.");
             System.out.println();
         }
 
-        if (args.getDebugLevel() >= 1) {
-            PrintWriter printWriter = new PrintWriter("dump");  // This is what `create-btrees.sh` expects
-            bTree.dumpToFile(printWriter);
-        }
+        System.out.println("Finalizing BTree on disk and creating SQLite database...");
         bTree.finishUp();
+        System.out.println("Done.");
+        System.out.println();
     }
 }

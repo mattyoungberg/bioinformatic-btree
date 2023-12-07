@@ -2,6 +2,8 @@ package cs321.search;
 
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
 import java.util.Scanner;
 import java.lang.String;
 import java.nio.file.Path;
@@ -37,7 +39,7 @@ public class GeneBankSearchBTree {
 	 */
 	public static void main(String[] args) throws Exception {
 		if (args.length == 0  || args[0].equals("--help") || args[0].equals("-h")) {
-			printUsageAndExit(null, 1);
+			printUsageAndExit(null, 0);
 		}
 		GeneBankSearchBTreeArguments geneBankSearchBTreearguments = parseArgumentsAndHandleExceptions(args);
 		searchBTree(geneBankSearchBTreearguments);
@@ -129,7 +131,6 @@ public class GeneBankSearchBTree {
 		// open scanner to read query file in
 		Scanner input = new Scanner(new FileReader(args.getQueryFileName()));  // open scanner to read query file
 		String query;
-		String complementQuery;
 		long queryLong;
 		long complementQueryLong;
 		TreeObject result;
@@ -142,7 +143,6 @@ public class GeneBankSearchBTree {
 			query = input.nextLine().trim().toLowerCase();
 			queryLong = SequenceUtils.dnaStringToLong(query);
 			complementQueryLong = SequenceUtils.getComplement(queryLong, query.length());
-			complementQuery = SequenceUtils.longToDnaString(complementQueryLong, args.getSubsequenceLength());
 			result = searchTree.search(queryLong);
 			complementResult = searchTree.search(complementQueryLong);
 
@@ -153,7 +153,7 @@ public class GeneBankSearchBTree {
 			if (args.getDebugLevel() == 0) {
 				System.out.println(query + " " + totalFreq);
 			} else {
-				debugLevel1(query, complementQuery, result, complementResult);
+				debugLevel1(query, result, complementResult);
 			}
 		}
 		input.close();
@@ -163,27 +163,31 @@ public class GeneBankSearchBTree {
 	 * Prints the result of a search per debug level 1 specifications.
 	 *
 	 * @param query				The query string
-	 * @param complementQuery	The complement of the query string
 	 * @param result			The {@link TreeObject} result of the query string; null if not found
 	 * @param complementResult	The {@link TreeObject} result of the complement of the query string; null if not found
 	 */
-	private static void debugLevel1(String query, String complementQuery, TreeObject result, TreeObject complementResult) {
-		// print results for direct search
-		System.out.println("Searching for subsequence: " + query);
-		if (result != null) {
-			System.out.println(query + " was found!");
-			System.out.println(query + " " + result.getCount());
-		} else {
-			System.out.println(query + " was not found!");
-		}
-		// print detail and results for complement search
-		System.out.println("Searching for subsequence complement: " + complementQuery);
-		if (complementResult != null) {
-			System.out.println(complementQuery + " was found!");
-			System.out.println(complementQuery + " " + complementResult.getCount());
-		} else {
-			System.out.println(complementQuery + " was not found!");
-		}
+	private static void debugLevel1(String query, TreeObject result, TreeObject complementResult) {
+		System.out.println();
+
+		// Header
+		String headerString = "  Search results for \"" + query + "\":  ";
+		List<String> dashedLines = Collections.nCopies(headerString.length(), "-");
+		System.out.println(String.join("", dashedLines));
+		System.out.println(headerString);
+		System.out.println(String.join("", dashedLines));
+
+		// Subsequence result
+		int resultCount = (result != null) ? result.getCount() : 0;
+		System.out.printf("subsequence:%,15d%n", resultCount);
+
+		// Complement result
+		int complementResultCount = (complementResult != null) ? complementResult.getCount() : 0;
+		System.out.printf("complement:%,16d%n", complementResultCount);
+
+		// Print total
+		System.out.printf("total:%,21d%n", resultCount + complementResultCount);
+
+		System.out.println();
 	}
 }
 
