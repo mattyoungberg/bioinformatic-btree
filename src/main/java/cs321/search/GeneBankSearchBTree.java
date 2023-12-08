@@ -71,11 +71,11 @@ public class GeneBankSearchBTree {
 	 */
 	private static void printUsageAndExit(String errorMessage, int exitCode) {
 		if (exitCode != 0) {
-			System.out.println(errorMessage);
+			System.err.println(errorMessage);
 		}
-		System.out.println("Usage: java -jar build/libs/GeneBankSearchBTree.jar --cache=<0|1> --degree=<btree-degree>");
-		System.out.println("\t--btreefile=<b-tree-file> --length=<sequence-length> --queryfile=<query-file>");
-		System.out.println("\t[--cachesize=<n>] [--debug=0|1]");
+		System.err.println("Usage: java -jar build/libs/GeneBankSearchBTree.jar --cache=<0|1> --degree=<btree-degree>");
+		System.err.println("\t--btreefile=<b-tree-file> --length=<sequence-length> --queryfile=<query-file>");
+		System.err.println("\t[--cachesize=<n>] [--debug=0|1]");
 		System.exit(exitCode);
 	}
 
@@ -167,27 +167,27 @@ public class GeneBankSearchBTree {
 	 * @param complementResult	The {@link TreeObject} result of the complement of the query string; null if not found
 	 */
 	private static void debugLevel1(String query, TreeObject result, TreeObject complementResult) {
-		System.out.println();
+		System.err.println();
 
 		// Header
 		String headerString = "  Search results for \"" + query + "\":  ";
 		List<String> dashedLines = Collections.nCopies(headerString.length(), "-");
-		System.out.println(String.join("", dashedLines));
-		System.out.println(headerString);
-		System.out.println(String.join("", dashedLines));
+		System.err.println(String.join("", dashedLines));
+		System.err.println(headerString);
+		System.err.println(String.join("", dashedLines));
 
 		// Subsequence result
 		int resultCount = (result != null) ? result.getCount() : 0;
-		System.out.printf("subsequence:%,15d%n", resultCount);
+		System.err.printf("subsequence:%,15d%n", resultCount);
 
 		// Complement result
 		int complementResultCount = (complementResult != null) ? complementResult.getCount() : 0;
-		System.out.printf("complement:%,16d%n", complementResultCount);
+		System.err.printf("complement:%,16d%n", complementResultCount);
 
 		// Print total
-		System.out.printf("total:%,21d%n", resultCount + complementResultCount);
+		System.err.printf("total:%,21d%n", resultCount + complementResultCount);
 
-		System.out.println();
+		System.err.println();
 	}
 }
 

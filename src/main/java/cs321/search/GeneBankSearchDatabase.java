@@ -70,10 +70,10 @@ public class GeneBankSearchDatabase {
 	 */
 	private static void printUsageAndExit(String errorMessage, int exitCode) {
 		if (exitCode != 0) {
-			System.out.println(errorMessage);
+			System.err.println(errorMessage);
 		}
-		System.out.println("Usage: java -jar build/libs/GeneBankSearchDatabase.jar --database=<SQLite-database-path> ");
-		System.out.println("\t --queryfile=<query-file>");
+		System.err.println("Usage: java -jar build/libs/GeneBankSearchDatabase.jar --database=<SQLite-database-path> ");
+		System.err.println("\t --queryfile=<query-file>");
 		System.exit(exitCode);
 	}
 
