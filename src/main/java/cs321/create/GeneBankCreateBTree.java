@@ -86,9 +86,9 @@ public class GeneBankCreateBTree {
      * @param exitCode     exit code to be used when exiting the program
      */
     private static void printUsageAndExit(String errorMessage, int exitCode) {
-        System.out.println(errorMessage);
-        System.out.println("Usage: java -jar build/libs/GeneBankCreateBTree.jar --cache=<0|1>  --degree=<btree-degree> ");
-        System.out.println("\t--gbkfile=<gbk-file> --length=<sequence-length> [--cachesize=<n>] [--debug=0|1]");
+        System.err.println(errorMessage);
+        System.err.println("Usage: java -jar build/libs/GeneBankCreateBTree.jar --cache=<0|1>  --degree=<btree-degree> ");
+        System.err.println("\t--gbkfile=<gbk-file> --length=<sequence-length> [--cachesize=<n>] [--debug=0|1]");
         System.exit(exitCode);
     }
 
@@ -118,8 +118,8 @@ public class GeneBankCreateBTree {
         String gbkFileBaseName = gbkFilePath.getFileName().toString(); // Extracts just the base name
         String btreeFileName = gbkFileBaseName + ".btree.data." + args.getSubsequenceLength() + "." + args.getDegree();
 
-        System.out.println();
-        System.out.println("Creating BTree from file \"" + gbkFilePathString + "\"...");
+        System.err.println();
+        System.err.println("Creating BTree from file \"" + gbkFilePathString + "\"...");
         BTree bTree;
         if (args.useCache()) {
             bTree = new BTree(args.getDegree(), btreeFileName, args.getCacheSize());
@@ -141,33 +141,33 @@ public class GeneBankCreateBTree {
             }
         }
 
-        System.out.println("BTree created successfully.");
-        System.out.println();
-        System.out.println("Summary:");
-        System.out.println("-------");
-        System.out.printf("%-30s%,10d%n", "Subsequences inserted:", subsequencesInserted);
-        System.out.printf("%-30s%,10d%n", "Subsequence length:", args.getSubsequenceLength());
-        System.out.printf("%-30s%,10d%n", "BTree degree:", bTree.getDegree());
-        System.out.printf("%-30s%,10d%n", "Total number of objects:", bTree.getSize());
-        System.out.printf("%-30s%,10d%n", "Total number of nodes:", bTree.getNumberOfNodes());
-        System.out.printf("%-30s%,10d%n", "Height of final tree:", bTree.getHeight());
+        System.err.println("BTree created successfully.");
+        System.err.println();
+        System.err.println("Summary:");
+        System.err.println("-------");
+        System.err.printf("%-30s%,10d%n", "Subsequences inserted:", subsequencesInserted);
+        System.err.printf("%-30s%,10d%n", "Subsequence length:", args.getSubsequenceLength());
+        System.err.printf("%-30s%,10d%n", "BTree degree:", bTree.getDegree());
+        System.err.printf("%-30s%,10d%n", "Total number of objects:", bTree.getSize());
+        System.err.printf("%-30s%,10d%n", "Total number of nodes:", bTree.getNumberOfNodes());
+        System.err.printf("%-30s%,10d%n", "Height of final tree:", bTree.getHeight());
         if (args.useCache()) {
-            System.out.printf("%-30s%,9.2f%%%n", "Cache hit rate:", bTree.getCacheHitRate() * 100);
+            System.err.printf("%-30s%,9.2f%%%n", "Cache hit rate:", bTree.getCacheHitRate() * 100);
         }
-        System.out.println();
+        System.err.println();
 
         if (args.getDebugLevel() == 1) {
-            System.out.printf("Dumping BTree contents to file...%n");
+            System.err.printf("Dumping BTree contents to file...%n");
             PrintWriter printWriter = new PrintWriter("dump");  // This is what `create-btrees.sh` expects
             bTree.dumpToFile(printWriter);
             printWriter.close();
-            System.out.println("Done.");
-            System.out.println();
+            System.err.println("Done.");
+            System.err.println();
         }
 
-        System.out.println("Finalizing BTree on disk and creating SQLite database...");
+        System.err.println("Finalizing BTree on disk and creating SQLite database...");
         bTree.finishUp();
-        System.out.println("Done.");
-        System.out.println();
+        System.err.println("Done.");
+        System.err.println();
     }
 }
