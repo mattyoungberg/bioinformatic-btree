@@ -133,6 +133,8 @@
 
 [Closes #78](https://github.com/mello-j/CS321-003-f23-team-09/pull/80) 551fcbd8fcec3771a6670b8cd1051670aacde6fa `Derek Caplinger`
 
+[Closes #79](https://github.com/mello-j/CS321-003-f23-team-09/pull/81) 5d29bf469f60a171df0ef8e54c623c8fc7490c4c `Derek Caplinger`
+
 ## Story completed 
 [Closes #2](https://github.com/mello-j/CS321-003-f23-team-09/issues/2) closed with comment `Matt Youngberg`
 
