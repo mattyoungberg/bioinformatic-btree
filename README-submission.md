@@ -51,8 +51,15 @@ was not much to begin with, we decided not to pursue testing of that file furthe
 
 ### Reflection: Derek Caplinger
 
-TBD
+This project was very challenging and there was, somehow, even more to it than I thought there would be during my initial read through of the project specifications. It was fun seeing how we can use the knowledge that we have in order to think a bit farther than just being a code monkey and only considering the immediate tasks requested and considering what other tools we have that make it easier to deliver what is being asked. I also enjoyed seeing a project that went beyond coding just to code and can see how what we are doing applies and can be used in any number of different fields of study.  
 
+While I certainly learned quite a bit regarding the BTree data structure I think a lot more of what I have taken away from this project is the significant difference between working on a project on my own and working on something with other people. 
+
+There was a lot for me to catch up on with using Github as part of a group in a repository with multiple people accessing it to make and upload changes. I also learned much more about the importance of communication and preparing for a project before getting started. For example a lot of time and probably headaches for the group, could have been saved if we discussed a more about the type of code styling, which admittedly should be pretty close across the board. In having these types of conversations ahead of time we likely would not have ahd to spend as much time double checking documentation and housekeeping steps as we did. 
+
+I have also had first hand experience with a number of things I need to change about the way I complete a project and the benefits of communicating with others through the process. I have developed a few bad habits that I had figured I could change when needed, but this project forced me to confront that it may not be as easy as I thought to do so especially with a deadline creeping closer. I have developed a bad habit of pushing out documentation and formatting to after the code is working. This has caused a few moments were something could have been more clear what was happening and created less frustration with my peers. 
+
+I have benefited greatly from being able to work with another person and get their insight into how a project like this can be done and in doing so feel that this project has helped me understand more clearly what I need to work on and how i want to improve moving forward. 
 ### Reflection: Matt Youngberg
 
 This project has been the most intensive experience I've had in a class at Boise State, presenting several enjoyable
